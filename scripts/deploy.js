@@ -19,7 +19,7 @@ async function main() {
       SafeDecimalMath: safeDecMath.address,
     },
   });
-  const xSyn = await xSynContract.deploy().then(f => f.deployed());;
+  const xSyn = await xSynContract.deploy(200).then(f => f.deployed());;
   console.log("XSyn Protocol deployed", xSyn.address);
 
   const xdusd = await deploy('XDUSDCore', "XDUSD Contract", "XDUSD", xSyn.address);

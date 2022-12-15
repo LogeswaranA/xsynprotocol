@@ -21,7 +21,14 @@ contract ExchangeRate is PluginClient {
         uint256 updatedOn;
     }
 
+    struct CurrentPrice {
+        string fSymbol;
+        uint256 price;
+        uint256 updatedOn;
+    }
+
     mapping(bytes32 => MarketPrice) public markets;
+    mapping(string => CurrentPrice) public prices;
 
     //Initialize event RequestFulfilled
     event RequestFulfilled(
@@ -48,6 +55,10 @@ contract ExchangeRate is PluginClient {
         return markets[_reqId].price;
     }
 
+    function showCurrentPrice(string memory _fsym) public view returns (uint256) {
+        return prices[_fsym].price;
+    }
+
     //_fsyms should be the name of your source token from which you want the comparison
     //_tsyms should be the name of your destinaiton token to which you need the comparison
 
@@ -71,6 +82,11 @@ contract ExchangeRate is PluginClient {
             _fSymbol,
             latestTimestamp
         );
+        prices[_fSymbol] = CurrentPrice(
+            _fSymbol,
+            0,
+            latestTimestamp
+        );
         // emit requestCreated(_caller, stringToBytes32(jobId), reqId);
         return reqId;
     }
@@ -81,6 +97,8 @@ contract ExchangeRate is PluginClient {
         recordPluginFulfillment(_requestId)
     {
         markets[_requestId].price = _currentval;
+        string memory _fsym = markets[_requestId].fSymbol;
+        prices[_fsym].price = _currentval;
         currentValue = _currentval;
         emit RequestFulfilled(_requestId, _currentval);
     }
