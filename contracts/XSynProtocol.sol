@@ -332,14 +332,14 @@ contract XSynProtocol is Constants, AddressResolver {
     function getMyCollateralRatio(address _user)
         external
         view
-        returns (uint256 _cratio)
+        returns (uint256 _cratio,bool _signValue)
     {
         //updating Other synthetix debit
         DebtPool[] memory debts = tradingPool[_user];
         uint256 _totMinted = 0;
         uint256 _totSwapped = 0;
         uint256 _totXDUSDBalance = 0;
-        uint256 _balance = 0;
+        uint256 _totalEarnings = 0;
         for (uint256 i = 0; i < debts.length; i++) {
             if (debts[i].isXDUSD) {
                 if (debts[i].isMinted) {
@@ -348,33 +348,44 @@ contract XSynProtocol is Constants, AddressResolver {
                     _totSwapped = _totSwapped.add(debts[i].synthValue);
                 }
             } else {
-                _balance = _balance.add(
+                _totalEarnings = _totalEarnings.add(
                     debts[i].synthValue.mul(
                         ExchangeRate().showCurrentPrice(debts[i].xSynSymbol)
                     )
                 );
             }
         }
+
         if (_totMinted > _totSwapped) {
             _totXDUSDBalance = _totMinted.sub(_totSwapped);
-        } else {
-            _totXDUSDBalance = _totSwapped.sub(_totMinted);
         }
-        _balance = _balance.add(_totXDUSDBalance);
+        _totalEarnings = _totalEarnings.add(_totXDUSDBalance);
 
-        return _balance;
+        uint256 _totalStakedUnits = calculateRatio(_user);
+
+        uint256 _yourCratiois = 0;
+        bool isPositive;
+        if(_totalEarnings>=_totalStakedUnits){
+            _yourCratiois =(_totalEarnings.sub(_totalStakedUnits)).div(_totalStakedUnits).mul(100);
+            isPositive=true;
+        }else{
+            _yourCratiois =(_totalEarnings.sub(_totalStakedUnits)).div(_totalStakedUnits).mul(100);
+            isPositive=false;
+        }
+
+        return (_yourCratiois,isPositive);
     }
 
     function calculateRatio(address _user) internal view returns (uint256) {
         uint256 _totalXDCDeposited = deposits[_user].xdcDeposit;
         uint256 _totalPLIDeposited = deposits[_user].pliDeposit;
 
-        uint256 _totalXDUSDFORXDC = _totalXDCDeposited.multiplyDecimal(
-            ExchangeRate().showCurrentPrice("XDC")
-        ).div(minCRatio);
-        uint256 _totalXDUSDFORPLI = _totalPLIDeposited.multiplyDecimal(
-            ExchangeRate().showCurrentPrice("PLI")
-        ).div(minCRatio);
+        uint256 _totalXDUSDFORXDC = _totalXDCDeposited
+            .multiplyDecimal(ExchangeRate().showCurrentPrice("XDC"))
+            .div(minCRatio);
+        uint256 _totalXDUSDFORPLI = _totalPLIDeposited
+            .multiplyDecimal(ExchangeRate().showCurrentPrice("PLI"))
+            .div(minCRatio);
 
         uint256 _finalSummedXDUSD = _totalXDUSDFORXDC.add(_totalXDUSDFORPLI);
         return _finalSummedXDUSD;
