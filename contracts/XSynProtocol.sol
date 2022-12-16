@@ -332,7 +332,7 @@ contract XSynProtocol is Constants, AddressResolver {
     function getMyCollateralRatio(address _user)
         external
         view
-        returns (uint256 _cratio,bool _signValue)
+        returns (uint256 _cratio,bool _underCollateral,bool _overCollateral,uint256 _totalTokenToMOrB)
     {
         //updating Other synthetix debit
         DebtPool[] memory debts = tradingPool[_user];
@@ -355,28 +355,33 @@ contract XSynProtocol is Constants, AddressResolver {
                 );
             }
         }
-
         if (_totMinted > _totSwapped) {
             _totXDUSDBalance = _totMinted.sub(_totSwapped);
         }
         _totalEarnings = _totalEarnings.add(_totXDUSDBalance);
 
-        uint256 _totalStakedUnits = calculateRatio(_user);
+        uint256 _totalStakedUnits = calculateInvested(_user);
 
         uint256 _yourCratiois = 0;
-        bool isPositive;
+        bool isUnderCollaterilized;
+        bool isOverCollaterilized;
+        uint256 _totalTokenToMintOrBurn;
         if(_totalEarnings>=_totalStakedUnits){
             _yourCratiois =(_totalEarnings.sub(_totalStakedUnits)).div(_totalStakedUnits).mul(100);
-            isPositive=true;
+            isUnderCollaterilized=false;
+            isOverCollaterilized=true;
+            _totalTokenToMintOrBurn = _totalStakedUnits.mul(_yourCratiois).div(100);
         }else{
             _yourCratiois =(_totalEarnings.sub(_totalStakedUnits)).div(_totalStakedUnits).mul(100);
-            isPositive=false;
+            isUnderCollaterilized=true;
+            isOverCollaterilized=false;
+            _totalTokenToMintOrBurn = _totalStakedUnits.mul(_yourCratiois).div(100);
         }
 
-        return (_yourCratiois,isPositive);
+        return (_yourCratiois,isUnderCollaterilized,isOverCollaterilized,_totalTokenToMintOrBurn);
     }
 
-    function calculateRatio(address _user) internal view returns (uint256) {
+    function calculateInvested(address _user) internal view returns (uint256) {
         uint256 _totalXDCDeposited = deposits[_user].xdcDeposit;
         uint256 _totalPLIDeposited = deposits[_user].pliDeposit;
 

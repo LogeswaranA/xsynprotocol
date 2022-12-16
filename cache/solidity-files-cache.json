@@ -495,8 +495,8 @@
       ]
     },
     "/Users/lokesh/projects/xSynProject/contracts/XSynProtocol.sol": {
-      "lastModificationDate": 1671134605278,
-      "contentHash": "b243837f21a9ba14771033a2b5db906f",
+      "lastModificationDate": 1671173665896,
+      "contentHash": "1a9c0fb4e6161d416337462159be665c",
       "sourceName": "contracts/XSynProtocol.sol",
       "solcConfig": {
         "version": "0.8.4",
