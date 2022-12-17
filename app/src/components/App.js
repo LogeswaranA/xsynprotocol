@@ -1,10 +1,15 @@
 import { ethers } from 'ethers';
 import './App.css';
-import Sample from './Sample/Sample';
+import RESOLVER from './RESOLVER/RESOLVER';
+import Xsyn from './XSyn/Xsyn';
+
 import Header from './Header/Header';
 
-import { abi } from '../artifacts/contracts/SampleContract.sol/SampleContract.json';
-import { SampleContract as address } from '../output.json';
+import { abi as addressresolverabi } from '../artifacts/contracts/AddressResolver.sol/AddressResolver.json';
+import { ADDRESSRESOLVER as addressresolver } from '../output.json';
+
+import { abi as xsynabi } from '../artifacts/contracts/XSynProtocol.sol/XSynProtocol.json';
+import { XSYNPROTOCOL as xsynaddress } from '../output.json';
 
 import { useState } from 'react';
 import { ToastContainer } from 'react-toastify';
@@ -29,10 +34,12 @@ function App() {
     event.preventDefault();
     const instance = await connectWallet(connectOptions);
     const {provider,signer} = await createWeb3Provider(instance);
-    const sample = await createContractInstance(address, abi, provider);
+
+    const AddresssResolver = await createContractInstance(addressresolver, addressresolverabi, provider);
+    const XsynProtocol = await createContractInstance(xsynaddress, xsynabi, provider);
 
     const account = signer.getAddress();
-    setethereumContext({ provider, sample, account,pollution })
+    setethereumContext({ provider, AddresssResolver, account,XsynProtocol })
     log("Connect", "Get Address", await signer.getAddress());
     setconnecting(true);
   }
@@ -40,16 +47,16 @@ function App() {
     <div className="App">
       <Header />
       <header className="App-header">
-        <h1>Sample Decentralized Application </h1>
-        <p>Powered by react-solidity-xdc3 Package</p>
-        <p>Contributed by GoPlugin(www.goplugin.co)</p>
+        <h1>XSyn Protocol Decentralized Application </h1>
+        <p>Powered by Plugin Decentralied Oracle Price Feed</p>
         <form onSubmit={connect}>
           <button type="submit" disabled={connecting}>{connecting ? 'Connecting...' : 'Connect'}</button>
         </form>
       </header>
       <section className="App-content">
         <EthereumContext.Provider value={ethereumContext}>
-          <Sample />
+          <RESOLVER />
+          <Xsyn />
         </EthereumContext.Provider>
       </section>
       <ToastContainer hideProgressBar={true} />

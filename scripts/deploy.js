@@ -11,7 +11,7 @@ async function main() {
   console.log("SafeDecimalMath deployed", safeDecMath.address)
   const addr = await deploy('AddressResolver');
   console.log("AddressResolver deployed", addr.address)
-  const exchange = await deploy('ExchangeRate', "0x33f4212b027e22af7e6ba21fc572843c0d701cd1", "0x9BF6b589dD637A2972EbB0e2b19b85d98f33b5Bb", "fcbec033ce1f4700a6aa8db65d06b877");
+  const exchange = await deploy('ExchangeRate', "0x33f4212b027e22af7e6ba21fc572843c0d701cd1", "0x97A6d407f4CD30936679d0a28A3bc2A7F13a2185", "839e3a5a88eb4c59aafb1fcedcdc0dd7");
   console.log("ExchangeRate deployed", exchange.address);
 
   const xSynContract = await ethers.getContractFactory("XSynProtocol", {
@@ -52,7 +52,8 @@ async function main() {
     XSynExchange: xsynexchange.address,
     XDBTC: xdbtc.address,
     XDETH: xdeth.address,
-    XDPAX: xdpax.address
+    XDPAX: xdpax.address,
+    SafeDecimalMath:safeDecMath.address
   }, null, 2));
 }
 if (require.main === module) {

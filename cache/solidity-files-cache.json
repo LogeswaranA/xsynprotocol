@@ -495,8 +495,8 @@
       ]
     },
     "/Users/lokesh/projects/xSynProject/contracts/XSynProtocol.sol": {
-      "lastModificationDate": 1671173665896,
-      "contentHash": "1a9c0fb4e6161d416337462159be665c",
+      "lastModificationDate": 1671220912188,
+      "contentHash": "31a57f03fe4bff9135f0f7233c52201d",
       "sourceName": "contracts/XSynProtocol.sol",
       "solcConfig": {
         "version": "0.8.4",
@@ -925,8 +925,8 @@
       ]
     },
     "/Users/lokesh/projects/xSynProject/contracts/AddressResolver.sol": {
-      "lastModificationDate": 1671095825619,
-      "contentHash": "738f8f8defba34d7bbaf0839f32a5f23",
+      "lastModificationDate": 1671218361964,
+      "contentHash": "a7b72263d705d99739d3967f4ec6e074",
       "sourceName": "contracts/AddressResolver.sol",
       "solcConfig": {
         "version": "0.8.4",
@@ -993,8 +993,8 @@
       ]
     },
     "/Users/lokesh/projects/xSynProject/contracts/XSynExchange.sol": {
-      "lastModificationDate": 1671095994087,
-      "contentHash": "df02b88e586c483382c17d9694924a8e",
+      "lastModificationDate": 1671219249742,
+      "contentHash": "296099ce0f45b981f9a3f8af9bad26e8",
       "sourceName": "contracts/XSynExchange.sol",
       "solcConfig": {
         "version": "0.8.4",

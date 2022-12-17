@@ -22,8 +22,10 @@ contract XSynProtocol is Constants, AddressResolver {
     // mapping(address => uint256) public mintr;
     address public contractOwner;
 
-    uint256 public minimumXDCDepositAmount = 10000 * SafeDecimalMath.unit();
-    uint256 public minimumPLIDepositAmount = 20000 * SafeDecimalMath.unit();
+    mapping(string => address) public keyaddress;
+
+    uint256 public minimumXDCDepositAmount = 1000 * SafeDecimalMath.unit();
+    uint256 public minimumPLIDepositAmount = 500 * SafeDecimalMath.unit();
 
     /* Stores deposits from users. */
     struct DepositEntry {
@@ -75,6 +77,13 @@ contract XSynProtocol is Constants, AddressResolver {
         emit MinimumDepositAmountUpdated(minimumPLIDepositAmount);
     }
 
+    function updateKeyAddress(string memory _name, address _destination)
+        external
+        onlyAuthorized
+    {
+        keyaddress[_name] = _destination;
+    }
+
     function _onlyAuthorized() internal view {
         require(
             msg.sender == contractOwner,
@@ -114,10 +123,11 @@ contract XSynProtocol is Constants, AddressResolver {
             msg.value >= minimumXDCDepositAmount,
             "XDC amount Should be minimumXDCDepositAmount limit"
         );
-        bytes32 requestId = ExchangeRate().requestData("XDC", "USDT");
-        uint256 xdUSDToMint = msg.value.multiplyDecimal(
-            ExchangeRate().showPrice(requestId)
+
+        uint256 _currentPrice = ExchangeRate().showCurrentPrice("XDC").div(
+            10000
         );
+        uint256 xdUSDToMint = msg.value.multiplyDecimal(_currentPrice);
 
         //Apply Cratio
         uint256 _afterCollateralRatioApplied = xdUSDToMint.div(minCRatio);
@@ -190,9 +200,13 @@ contract XSynProtocol is Constants, AddressResolver {
         // How much is the XDC they sent us worth in XDUSD (ignoring the transfer fee)?
         // The multiplication works here because  ExchangeRate().retrieve(XDC_PRICE_FROM_PLUGIN) is specified in
         // 18 decimal places, just like our currency base.
-        bytes32 requestId = ExchangeRate().requestData("PLI", "USDT");
+        // bytes32 requestId = ExchangeRate().requestData("PLI", "USDT");
+        // uint256 xdUSDToMint = _pliVal.multiplyDecimal(
+        //     ExchangeRate().showPrice(requestId)
+        // );
+
         uint256 xdUSDToMint = _pliVal.multiplyDecimal(
-            ExchangeRate().showPrice(requestId)
+            ExchangeRate().showCurrentPrice("PLI").div(10000)
         );
 
         uint256 _afterCollateralRatioApplied = xdUSDToMint.div(minCRatio);
@@ -252,15 +266,15 @@ contract XSynProtocol is Constants, AddressResolver {
     }
 
     function XDUSDCore() internal view returns (IXDUSDCore) {
-        return IXDUSDCore(requireAndGetAddress(CONTRACT_XDUSDCORE));
+        return IXDUSDCore(keyaddress[CONTRACT_XDUSDCORE]);
     }
 
     function ExchangeRate() internal view returns (IExchangeRate) {
-        return IExchangeRate(requireAndGetAddress(CONTRACT_EXCHANGERATE));
+        return IExchangeRate(keyaddress[CONTRACT_EXCHANGERATE]);
     }
 
     function XsynExchanger() internal view returns (address) {
-        return address(requireAndGetAddress(CONTRACT_XSYNEXCHANGE));
+        return address(keyaddress[CONTRACT_XSYNEXCHANGE]);
     }
 
     function XRC20Balance(
@@ -332,7 +346,12 @@ contract XSynProtocol is Constants, AddressResolver {
     function getMyCollateralRatio(address _user)
         external
         view
-        returns (uint256 _cratio,bool _underCollateral,bool _overCollateral,uint256 _totalTokenToMOrB)
+        returns (
+            uint256 _cratio,
+            bool _underCollateral,
+            bool _overCollateral,
+            uint256 _totalTokenToMOrB
+        )
     {
         //updating Other synthetix debit
         DebtPool[] memory debts = tradingPool[_user];
@@ -350,7 +369,9 @@ contract XSynProtocol is Constants, AddressResolver {
             } else {
                 _totalEarnings = _totalEarnings.add(
                     debts[i].synthValue.mul(
-                        ExchangeRate().showCurrentPrice(debts[i].xSynSymbol)
+                        ExchangeRate()
+                            .showCurrentPrice(debts[i].xSynSymbol)
+                            .div(10000)
                     )
                 );
             }
@@ -366,19 +387,32 @@ contract XSynProtocol is Constants, AddressResolver {
         bool isUnderCollaterilized;
         bool isOverCollaterilized;
         uint256 _totalTokenToMintOrBurn;
-        if(_totalEarnings>=_totalStakedUnits){
-            _yourCratiois =(_totalEarnings.sub(_totalStakedUnits)).div(_totalStakedUnits).mul(100);
-            isUnderCollaterilized=false;
-            isOverCollaterilized=true;
-            _totalTokenToMintOrBurn = _totalStakedUnits.mul(_yourCratiois).div(100);
-        }else{
-            _yourCratiois =(_totalEarnings.sub(_totalStakedUnits)).div(_totalStakedUnits).mul(100);
-            isUnderCollaterilized=true;
-            isOverCollaterilized=false;
-            _totalTokenToMintOrBurn = _totalStakedUnits.mul(_yourCratiois).div(100);
+        if (_totalEarnings >= _totalStakedUnits) {
+            _yourCratiois = (_totalEarnings.sub(_totalStakedUnits))
+                .div(_totalStakedUnits)
+                .mul(100);
+            isUnderCollaterilized = false;
+            isOverCollaterilized = true;
+            _totalTokenToMintOrBurn = _totalStakedUnits.mul(_yourCratiois).div(
+                100
+            );
+        } else {
+            _yourCratiois = (_totalEarnings.sub(_totalStakedUnits))
+                .div(_totalStakedUnits)
+                .mul(100);
+            isUnderCollaterilized = true;
+            isOverCollaterilized = false;
+            _totalTokenToMintOrBurn = _totalStakedUnits.mul(_yourCratiois).div(
+                100
+            );
         }
 
-        return (_yourCratiois,isUnderCollaterilized,isOverCollaterilized,_totalTokenToMintOrBurn);
+        return (
+            _yourCratiois,
+            isUnderCollaterilized,
+            isOverCollaterilized,
+            _totalTokenToMintOrBurn
+        );
     }
 
     function calculateInvested(address _user) internal view returns (uint256) {
@@ -386,10 +420,10 @@ contract XSynProtocol is Constants, AddressResolver {
         uint256 _totalPLIDeposited = deposits[_user].pliDeposit;
 
         uint256 _totalXDUSDFORXDC = _totalXDCDeposited
-            .multiplyDecimal(ExchangeRate().showCurrentPrice("XDC"))
+            .multiplyDecimal(ExchangeRate().showCurrentPrice("XDC").div(10000))
             .div(minCRatio);
         uint256 _totalXDUSDFORPLI = _totalPLIDeposited
-            .multiplyDecimal(ExchangeRate().showCurrentPrice("PLI"))
+            .multiplyDecimal(ExchangeRate().showCurrentPrice("PLI").div(10000))
             .div(minCRatio);
 
         uint256 _finalSummedXDUSD = _totalXDUSDFORXDC.add(_totalXDUSDFORPLI);

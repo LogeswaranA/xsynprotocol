@@ -15,12 +15,12 @@ contract XSynExchange is Constants, AddressResolver {
     using SafeDecimalMath for uint256;
 
     string public constant CONTRACTNAME = "XSynExchange";
-    string internal constant CONTRACT_XSYNPROTOCOL = "XSynProtocol";
-    string internal constant CONTRACT_XDBTC = "XDBTC";
-    string internal constant CONTRACT_XDETH = "XDETH";
-    string internal constant CONTRACT_XDPAX = "XDPAX";
-    string internal constant CONTRACT_XDUSD = "XDUSD";
-    string internal constant CONTRACT_EXCHANGERATE = "EXCHANGERATE";
+    bytes32 internal constant CONTRACT_XSYNPROTOCOL = "XSynProtocol";
+    bytes32 internal constant CONTRACT_XDBTC = "XDBTC";
+    bytes32 internal constant CONTRACT_XDETH = "XDETH";
+    bytes32 internal constant CONTRACT_XDPAX = "XDPAX";
+    bytes32 internal constant CONTRACT_XDUSD = "XDUSD";
+    bytes32 internal constant CONTRACT_EXCHANGERATE = "EXCHANGERATE";
 
     mapping(address => uint256) public mintr;
     address public contractOwner;
@@ -37,7 +37,7 @@ contract XSynExchange is Constants, AddressResolver {
         uint256 exchangedOn;
     }
 
-    mapping(address => mapping(string => ExchangeEntry)) public exchanges;
+    mapping(address => mapping(bytes32 => ExchangeEntry)) public exchanges;
 
     constructor() {
         contractOwner = msg.sender;
@@ -73,7 +73,9 @@ contract XSynExchange is Constants, AddressResolver {
     function exchangeXDUSDForSynths(
         uint256 _amount,
         address _preferredSynthAddress,
-        string memory _preferredSynthSymbol
+        bytes32  _preferredSynthSymbol,
+        string memory _woprefixSynth,
+        string memory _wprefixSynth
     ) external returns (uint256) {
         require(
             _amount >= minimumXDUSDDepositAmount,
@@ -89,12 +91,9 @@ contract XSynExchange is Constants, AddressResolver {
             requireAndGetAddress(CONTRACT_XDUSD),
             _amount
         );
-        bytes32 requestId = ExchangeRate().requestData(
-            _preferredSynthSymbol,
-            "USDT"
-        );
+
         uint256 synthsToMint = _amount.multiplyDecimal(
-            ExchangeRate().showPrice(requestId)
+            ExchangeRate().showCurrentPrice(_woprefixSynth).div(10000)
         );
         transferFundsToContract(_amount, requireAndGetAddress(CONTRACT_XDUSD));
         return
@@ -102,15 +101,17 @@ contract XSynExchange is Constants, AddressResolver {
                 synthsToMint,
                 _amount,
                 _preferredSynthSymbol,
-                _preferredSynthAddress
+                _preferredSynthAddress,
+                _wprefixSynth
             );
     }
 
     function _exchangeXDUSDForSynths(
         uint256 _synthsToMint,
         uint256 __xdusdAmt,
-        string memory __preferredSynthSymbol,
-        address __preferredSynthAddress
+        bytes32  __preferredSynthSymbol,
+        address __preferredSynthAddress,
+        string memory _wprefixSynth
     ) internal returns (uint256) {
         ExchangeEntry memory exchange = exchanges[msg.sender][
             __preferredSynthSymbol
@@ -132,12 +133,12 @@ contract XSynExchange is Constants, AddressResolver {
             msg.sender,
             __xdusdAmt,
             _synthsToMint,
-            __preferredSynthSymbol
+            _wprefixSynth
         );
         return _synthsToMint;
     }
 
-    function XsynExec(string memory _Symbol) internal view returns (IXsynExec) {
+    function XsynExec(bytes32 _Symbol) internal view returns (IXsynExec) {
         return IXsynExec(requireAndGetAddress(_Symbol));
     }
 
