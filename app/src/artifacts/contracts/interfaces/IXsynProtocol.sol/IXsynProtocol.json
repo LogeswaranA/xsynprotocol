@@ -26,7 +26,25 @@
           "type": "string"
         }
       ],
-      "name": "updateDebtPool",
+      "name": "updateDebtPoolSynth",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_user",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_totUsdSwapped",
+          "type": "uint256"
+        }
+      ],
+      "name": "updateDebtPoolXDUSD",
       "outputs": [],
       "stateMutability": "nonpayable",
       "type": "function"

@@ -15,32 +15,41 @@ contract XSynExchange is Constants, AddressResolver {
     using SafeDecimalMath for uint256;
 
     string public constant CONTRACTNAME = "XSynExchange";
-    bytes32 internal constant CONTRACT_XSYNPROTOCOL = "XSynProtocol";
-    bytes32 internal constant CONTRACT_XDBTC = "XDBTC";
-    bytes32 internal constant CONTRACT_XDETH = "XDETH";
-    bytes32 internal constant CONTRACT_XDPAX = "XDPAX";
-    bytes32 internal constant CONTRACT_XDUSD = "XDUSD";
-    bytes32 internal constant CONTRACT_EXCHANGERATE = "EXCHANGERATE";
+    string internal constant CONTRACT_XSYNPROTOCOL = "XSynProtocol";
+    string internal constant CONTRACT_XDBTC = "XDBTC";
+    string internal constant CONTRACT_XDETH = "XDETH";
+    string internal constant CONTRACT_XDPAX = "XDPAX";
+    string internal constant CONTRACT_XDUSD = "XDUSD";
+    string internal constant CONTRACT_EXCHANGERATE = "EXCHANGERATE";
 
     mapping(address => uint256) public mintr;
     address public contractOwner;
 
-    uint256 public minimumXDUSDDepositAmount = 50 * SafeDecimalMath.unit();
+    uint256 public minimumXDUSDDepositAmount = 1 ether;
+
+    mapping(string => address) public exchangeKeyAddress;
 
     /* Stores Exhanges from users. */
     struct ExchangeEntry {
         // The user that made the exchange
-        address payable user;
+        address user;
         uint256 xdUsdDeposit;
         uint256 synthsExchanged;
         address currencyAddress;
         uint256 exchangedOn;
     }
 
-    mapping(address => mapping(bytes32 => ExchangeEntry)) public exchanges;
+    mapping(address => mapping(string => ExchangeEntry)) public exchanges;
 
     constructor() {
         contractOwner = msg.sender;
+    }
+
+    function updateExchangeKeyAddress(string memory _name, address _destination)
+        external
+        onlyAuthorized
+    {
+        exchangeKeyAddress[_name] = _destination;
     }
 
     /* ========== MODIFIERS ========== */
@@ -53,10 +62,18 @@ contract XSynExchange is Constants, AddressResolver {
         _;
     }
 
-    /**
-     * @notice Fallback function
-     */
-    receive() external payable {}
+    function calculateUnits(uint256 _units, string memory _symbol)
+        public
+        view
+        returns (
+            uint256 // Returns the number of Synths (sUSD) Minted
+        )
+    {
+        uint256 _currentPrice = ExchangeRate().showCurrentPrice(_symbol);
+        uint256 _denominator = _currentPrice.div(10000);
+        uint256 _toMint = _units.div(_denominator);
+        return _toMint;
+    }
 
     function setMinDepositForXDUSD(uint256 _minDeposit)
         external
@@ -73,34 +90,22 @@ contract XSynExchange is Constants, AddressResolver {
     function exchangeXDUSDForSynths(
         uint256 _amount,
         address _preferredSynthAddress,
-        bytes32  _preferredSynthSymbol,
         string memory _woprefixSynth,
         string memory _wprefixSynth
-    ) external returns (uint256) {
+    ) public returns (uint256) {
         require(
             _amount >= minimumXDUSDDepositAmount,
             "XDUSD amount Should be minimumXDUSDDepositAmount limit"
         );
-        require(
-            isRequireAndGetAddress(_preferredSynthSymbol),
-            "Symbol not supported"
-        );
-        XRC20Balance(msg.sender, requireAndGetAddress(CONTRACT_XDUSD), _amount);
-        XRC20Allowance(
-            msg.sender,
-            requireAndGetAddress(CONTRACT_XDUSD),
-            _amount
-        );
 
-        uint256 synthsToMint = _amount.multiplyDecimal(
-            ExchangeRate().showCurrentPrice(_woprefixSynth).div(10000)
-        );
-        transferFundsToContract(_amount, requireAndGetAddress(CONTRACT_XDUSD));
+        XRC20Balance(msg.sender, exchangeKeyAddress[CONTRACT_XDUSD], _amount);
+        XRC20Allowance(msg.sender, exchangeKeyAddress[CONTRACT_XDUSD], _amount);
+        uint256 synthsToMint = calculateUnits(_amount, _woprefixSynth);
+        transferFundsToContract(_amount, exchangeKeyAddress[CONTRACT_XDUSD]);
         return
             _exchangeXDUSDForSynths(
                 synthsToMint,
                 _amount,
-                _preferredSynthSymbol,
                 _preferredSynthAddress,
                 _wprefixSynth
             );
@@ -108,50 +113,48 @@ contract XSynExchange is Constants, AddressResolver {
 
     function _exchangeXDUSDForSynths(
         uint256 _synthsToMint,
-        uint256 __xdusdAmt,
-        bytes32  __preferredSynthSymbol,
-        address __preferredSynthAddress,
+        uint256 _xdusdAmt,
+        address _preferredSynthAddress,
         string memory _wprefixSynth
     ) internal returns (uint256) {
-        ExchangeEntry memory exchange = exchanges[msg.sender][
-            __preferredSynthSymbol
-        ];
-        uint256 _xdUsdNewBalance = exchange.xdUsdDeposit.add(__xdusdAmt);
+        ExchangeEntry memory exchange = exchanges[msg.sender][_wprefixSynth];
+        uint256 _xdUsdNewBalance = exchange.xdUsdDeposit.add(_xdusdAmt);
         uint256 _synthsNewBalance = exchange.synthsExchanged.add(_synthsToMint);
-
         // add a row in deposit entry and sum up the total value deposited so far
-        exchanges[msg.sender][__preferredSynthSymbol] = ExchangeEntry(
-            payable(msg.sender),
+        exchanges[msg.sender][_wprefixSynth] = ExchangeEntry(
+            msg.sender,
             _xdUsdNewBalance,
             _synthsNewBalance,
-            __preferredSynthAddress,
+            _preferredSynthAddress,
             block.timestamp
         );
         //mint respective Synthetix for the amount of XDC they staked
-        XsynExec(__preferredSynthSymbol).mint(msg.sender, _synthsToMint);
-        XSynProtocol().updateDebtPool(
-            msg.sender,
-            __xdusdAmt,
-            _synthsToMint,
-            _wprefixSynth
-        );
+        XsynExec(_wprefixSynth).mint(msg.sender, _synthsToMint);
+        // XSynProtocol().updateDebtPoolSynth(
+        //     msg.sender,
+        //     _xdusdAmt,
+        //     _synthsToMint,
+        //     _wprefixSynth
+        // );
+        // XSynProtocol().updateDebtPoolXDUSD(msg.sender, _xdusdAmt);
+        emit updatedebt(msg.sender, _xdusdAmt, _synthsToMint, _wprefixSynth);
         return _synthsToMint;
     }
 
-    function XsynExec(bytes32 _Symbol) internal view returns (IXsynExec) {
-        return IXsynExec(requireAndGetAddress(_Symbol));
+    function XsynExec(string memory _Symbol) internal view returns (IXsynExec) {
+        return IXsynExec(exchangeKeyAddress[_Symbol]);
     }
 
     function ExchangeRate() internal view returns (IExchangeRate) {
-        return IExchangeRate(requireAndGetAddress(CONTRACT_EXCHANGERATE));
+        return IExchangeRate(exchangeKeyAddress[CONTRACT_EXCHANGERATE]);
     }
 
     function XDUSDCore() internal view returns (IXDUSDCore) {
-        return IXDUSDCore(requireAndGetAddress(CONTRACT_XDUSD));
+        return IXDUSDCore(exchangeKeyAddress[CONTRACT_XDUSD]);
     }
 
     function XSynProtocol() internal view returns (IXsynProtocol) {
-        return IXsynProtocol(requireAndGetAddress(CONTRACT_XSYNPROTOCOL));
+        return IXsynProtocol(exchangeKeyAddress[CONTRACT_XSYNPROTOCOL]);
     }
 
     function XRC20Balance(
@@ -186,4 +189,10 @@ contract XSynExchange is Constants, AddressResolver {
 
     /* ========== EVENTS ========== */
     event MinimumDepositAmountUpdated(uint256 amount);
+    event updatedebt(
+        address _user,
+        uint256 _xdusdAmt,
+        uint256 _synthsToMint,
+        string _wprefixSynth
+    );
 }

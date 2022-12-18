@@ -495,8 +495,8 @@
       ]
     },
     "/Users/lokesh/projects/xSynProject/contracts/XSynProtocol.sol": {
-      "lastModificationDate": 1671220912188,
-      "contentHash": "31a57f03fe4bff9135f0f7233c52201d",
+      "lastModificationDate": 1671389627111,
+      "contentHash": "adaf7d05e4e05195e907105a0720dc62",
       "sourceName": "contracts/XSynProtocol.sol",
       "solcConfig": {
         "version": "0.8.4",
@@ -710,7 +710,7 @@
       ]
     },
     "/Users/lokesh/projects/xSynProject/contracts/utils/State.sol": {
-      "lastModificationDate": 1670867848490,
+      "lastModificationDate": 1671094847016,
       "contentHash": "54d35a7e16d6ef465459b52642641874",
       "sourceName": "contracts/utils/State.sol",
       "solcConfig": {
@@ -993,8 +993,8 @@
       ]
     },
     "/Users/lokesh/projects/xSynProject/contracts/XSynExchange.sol": {
-      "lastModificationDate": 1671219249742,
-      "contentHash": "296099ce0f45b981f9a3f8af9bad26e8",
+      "lastModificationDate": 1671389568566,
+      "contentHash": "42bd5c6f29af68d9ecbf819a6f19ea96",
       "sourceName": "contracts/XSynExchange.sol",
       "solcConfig": {
         "version": "0.8.4",
@@ -1070,8 +1070,8 @@
       ]
     },
     "/Users/lokesh/projects/xSynProject/contracts/interfaces/IXsynProtocol.sol": {
-      "lastModificationDate": 1671040614054,
-      "contentHash": "56b6a6cadb3d3dcd7c289655a64fd56e",
+      "lastModificationDate": 1671387765866,
+      "contentHash": "2ff8041e37242a8ddfa7453f74e9693a",
       "sourceName": "contracts/interfaces/IXsynProtocol.sol",
       "solcConfig": {
         "version": "0.8.4",
@@ -1104,8 +1104,8 @@
       ]
     },
     "/Users/lokesh/projects/xSynProject/contracts/XDPAX.sol": {
-      "lastModificationDate": 1671041542014,
-      "contentHash": "1066054b02e36e4e04543acd6b02a9cc",
+      "lastModificationDate": 1671368687522,
+      "contentHash": "7dad195adc1d30370f00e0cfc4c6a97b",
       "sourceName": "contracts/XDPAX.sol",
       "solcConfig": {
         "version": "0.8.4",
@@ -1141,8 +1141,8 @@
       ]
     },
     "/Users/lokesh/projects/xSynProject/contracts/XDETH.sol": {
-      "lastModificationDate": 1671041537988,
-      "contentHash": "81ab3c49d16de364d3dda7d07c3e85e7",
+      "lastModificationDate": 1671368684619,
+      "contentHash": "9e724768e934fd9b8ce5cccfdaf8cf11",
       "sourceName": "contracts/XDETH.sol",
       "solcConfig": {
         "version": "0.8.4",
@@ -1178,8 +1178,8 @@
       ]
     },
     "/Users/lokesh/projects/xSynProject/contracts/XDBTC.sol": {
-      "lastModificationDate": 1671041531695,
-      "contentHash": "ead6f11cf20c7a1745bf8097567215b1",
+      "lastModificationDate": 1671368679205,
+      "contentHash": "3ea96d03f33f6c4834e72c5e72d5e2cf",
       "sourceName": "contracts/XDBTC.sol",
       "solcConfig": {
         "version": "0.8.4",

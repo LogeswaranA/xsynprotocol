@@ -17,6 +17,8 @@ contract XSynProtocol is Constants, AddressResolver {
     string internal constant CONTRACT_EXCHANGERATE = "EXCHANGERATE";
     string internal constant CONTRACT_XSYNEXCHANGE = "XSynExchange";
 
+    uint128 private constant MAX_BPS = 1_00;
+
     uint256 public minCRatio;
 
     // mapping(address => uint256) public mintr;
@@ -24,8 +26,8 @@ contract XSynProtocol is Constants, AddressResolver {
 
     mapping(string => address) public keyaddress;
 
-    uint256 public minimumXDCDepositAmount = 1000 * SafeDecimalMath.unit();
-    uint256 public minimumPLIDepositAmount = 500 * SafeDecimalMath.unit();
+    uint256 public minimumXDCDepositAmount = 100 ether;
+    uint256 public minimumPLIDepositAmount = 100 ether;
 
     /* Stores deposits from users. */
     struct DepositEntry {
@@ -44,7 +46,7 @@ contract XSynProtocol is Constants, AddressResolver {
 
     //DebtPool will track the swaps and the trading
     struct DebtPool {
-        address payable user;
+        address user;
         string xSynSymbol;
         uint256 synthValue;
         uint256 totXDSwapped;
@@ -59,7 +61,7 @@ contract XSynProtocol is Constants, AddressResolver {
 
     constructor(uint256 cratio) {
         contractOwner = msg.sender;
-        minCRatio = cratio;
+        minCRatio = uint64(cratio);
     }
 
     /**
@@ -108,6 +110,53 @@ contract XSynProtocol is Constants, AddressResolver {
         _;
     }
 
+    function calculateWithoutCratio(uint256 _units, string memory _symbol)
+        internal
+        view
+        returns (
+            uint256 // Returns the number of Synths (sUSD) Minted
+        )
+    {
+        uint256 _currentPrice = ExchangeRate().showCurrentPrice(_symbol);
+        uint256 _xdusdActual = _units.mul(_currentPrice);
+        return _xdusdActual / 10000;
+    }
+
+    function calculateXDUSD(
+        bool isXDC,
+        uint256 _units,
+        string memory _symbol
+    )
+        internal
+        returns (
+            uint256 // Returns the number of Synths (sUSD) Minted
+        )
+    {
+        uint256 _xdusdActual;
+        uint256 _currentPrice = ExchangeRate().showCurrentPrice(_symbol);
+
+        if (isXDC) {
+            _xdusdActual = msg.value.mul(_currentPrice);
+        } else {
+            _xdusdActual = _units.mul(_currentPrice);
+        }
+        uint256 _afterCollateralRatioApplied = (_xdusdActual /
+            (minCRatio / MAX_BPS)) / 10000;
+
+        emit calculatedRatio(
+            _afterCollateralRatioApplied,
+            _xdusdActual,
+            _currentPrice
+        );
+
+        return _afterCollateralRatioApplied;
+    }
+
+    function showPrice(string memory _symbol) public view returns (uint256) {
+        uint256 _tempprice = ExchangeRate().showCurrentPrice(_symbol);
+        return _tempprice;
+    }
+
     /**
      * @notice Exchange XDC to xdUSD.
      */
@@ -124,13 +173,8 @@ contract XSynProtocol is Constants, AddressResolver {
             "XDC amount Should be minimumXDCDepositAmount limit"
         );
 
-        uint256 _currentPrice = ExchangeRate().showCurrentPrice("XDC").div(
-            10000
-        );
-        uint256 xdUSDToMint = msg.value.multiplyDecimal(_currentPrice);
-
         //Apply Cratio
-        uint256 _afterCollateralRatioApplied = xdUSDToMint.div(minCRatio);
+        uint256 _afterCollateralRatioApplied = calculateXDUSD(true, 0, "XDC");
 
         totalXDUSDMinted[msg.sender] = totalXDUSDMinted[msg.sender].add(
             _afterCollateralRatioApplied
@@ -155,7 +199,7 @@ contract XSynProtocol is Constants, AddressResolver {
 
         // add a row in deposit entry and sum up the total value deposited so far
         deposits[msg.sender] = DepositEntry(
-            deposit.user,
+            payable(msg.sender),
             newAmount,
             deposit.pliDeposit,
             _xdusdAmount,
@@ -167,7 +211,7 @@ contract XSynProtocol is Constants, AddressResolver {
         uint256 _xdusdSynthValue = xdUSDDebtTotal.synthValue.add(_xdusdAmount);
 
         debtTotalPool[msg.sender]["XDUSD"] = DebtPool(
-            payable(msg.sender),
+            msg.sender,
             "XDUSD",
             _xdusdSynthValue,
             0,
@@ -197,19 +241,12 @@ contract XSynProtocol is Constants, AddressResolver {
             _pliVal >= minimumPLIDepositAmount,
             "PLI amount Should be minimumPLIDepositAmount limit"
         );
-        // How much is the XDC they sent us worth in XDUSD (ignoring the transfer fee)?
-        // The multiplication works here because  ExchangeRate().retrieve(XDC_PRICE_FROM_PLUGIN) is specified in
-        // 18 decimal places, just like our currency base.
-        // bytes32 requestId = ExchangeRate().requestData("PLI", "USDT");
-        // uint256 xdUSDToMint = _pliVal.multiplyDecimal(
-        //     ExchangeRate().showPrice(requestId)
-        // );
 
-        uint256 xdUSDToMint = _pliVal.multiplyDecimal(
-            ExchangeRate().showCurrentPrice("PLI").div(10000)
+        uint256 _afterCollateralRatioApplied = calculateXDUSD(
+            false,
+            _pliVal,
+            "PLI"
         );
-
-        uint256 _afterCollateralRatioApplied = xdUSDToMint.div(minCRatio);
 
         //Total XDUSD Minted by User
         totalXDUSDMinted[msg.sender] = totalXDUSDMinted[msg.sender].add(
@@ -237,7 +274,7 @@ contract XSynProtocol is Constants, AddressResolver {
 
         // add a row in deposit entry and sum up the total value deposited so far
         deposits[msg.sender] = DepositEntry(
-            deposit.user,
+            payable(msg.sender),
             deposit.xdcDeposit,
             newAmount,
             _xdusdAmount,
@@ -249,7 +286,7 @@ contract XSynProtocol is Constants, AddressResolver {
         uint256 _xdusdSynthValue = xdUSDDebtTotal.synthValue.add(_xdusdAmount);
 
         debtTotalPool[msg.sender]["XDUSD"] = DebtPool(
-            payable(msg.sender),
+            msg.sender,
             "XDUSD",
             _xdusdSynthValue,
             0,
@@ -300,18 +337,18 @@ contract XSynProtocol is Constants, AddressResolver {
         );
     }
 
-    function updateDebtPool(
+    function updateDebtPoolSynth(
         address _user,
         uint256 _totUsdSwapped,
         uint256 _totSynthsPurchased,
         string memory _symbolPurchased
-    ) external onlyExchanger {
+    ) public returns(bool)  {
         //updating Other synthetix debit
         DebtPool memory debtTotal = debtTotalPool[_user][_symbolPurchased];
         uint256 _synthValue = debtTotal.synthValue.add(_totSynthsPurchased);
 
         debtTotalPool[_user][_symbolPurchased] = DebtPool(
-            payable(_user),
+            _user,
             _symbolPurchased,
             _synthValue,
             _totUsdSwapped,
@@ -320,18 +357,31 @@ contract XSynProtocol is Constants, AddressResolver {
             true
         );
 
-        tradingPool[msg.sender].push(
-            debtTotalPool[msg.sender][_symbolPurchased]
+        tradingPool[_user].push(
+            DebtPool(
+                _user,
+                _symbolPurchased,
+                _synthValue,
+                _totUsdSwapped,
+                false,
+                false,
+                true
+            )
         );
+        return true;
+    }
 
+    function updateDebtPoolXDUSD(
+        address _user,
+        uint256 _totUsdSwapped
+    ) public returns(bool) {
         ///updating XDUSD debit
         DebtPool memory xdUSDDebtTotal = debtTotalPool[_user]["XDUSD"];
         uint256 _xdusdSynthValue = xdUSDDebtTotal.synthValue.sub(
             _totUsdSwapped
         );
-
         debtTotalPool[_user]["XDUSD"] = DebtPool(
-            payable(_user),
+            _user,
             "XDUSD",
             _xdusdSynthValue,
             _totUsdSwapped,
@@ -339,41 +389,31 @@ contract XSynProtocol is Constants, AddressResolver {
             false,
             true
         );
+        tradingPool[_user].push(debtTotalPool[_user]["XDUSD"]);
 
-        tradingPool[msg.sender].push(debtTotalPool[msg.sender]["XDUSD"]);
+        return true;
     }
 
-    function getMyCollateralRatio(address _user)
-        external
-        view
-        returns (
-            uint256 _cratio,
-            bool _underCollateral,
-            bool _overCollateral,
-            uint256 _totalTokenToMOrB
-        )
-    {
-        //updating Other synthetix debit
-        DebtPool[] memory debts = tradingPool[_user];
+    function GetEarnings(address _user) internal view returns (uint256) {
+        uint256 totCount = tradingPool[_user].length;
         uint256 _totMinted = 0;
         uint256 _totSwapped = 0;
         uint256 _totXDUSDBalance = 0;
         uint256 _totalEarnings = 0;
-        for (uint256 i = 0; i < debts.length; i++) {
-            if (debts[i].isXDUSD) {
-                if (debts[i].isMinted) {
-                    _totMinted = _totMinted.add(debts[i].synthValue);
+        for (uint256 i = 0; i < totCount; i++) {
+            DebtPool memory debts = tradingPool[_user][i];
+            if (debts.isXDUSD) {
+                if (debts.isMinted) {
+                    _totMinted = _totMinted.add(debts.synthValue);
                 } else {
-                    _totSwapped = _totSwapped.add(debts[i].synthValue);
+                    _totSwapped = _totSwapped.add(debts.synthValue);
                 }
             } else {
-                _totalEarnings = _totalEarnings.add(
-                    debts[i].synthValue.mul(
-                        ExchangeRate()
-                            .showCurrentPrice(debts[i].xSynSymbol)
-                            .div(10000)
-                    )
+                uint256 _tempEarn = calculateWithoutCratio(
+                    debts.synthValue,
+                    debts.xSynSymbol
                 );
+                _totalEarnings = _totalEarnings.add(_tempEarn);
             }
         }
         if (_totMinted > _totSwapped) {
@@ -381,53 +421,43 @@ contract XSynProtocol is Constants, AddressResolver {
         }
         _totalEarnings = _totalEarnings.add(_totXDUSDBalance);
 
-        uint256 _totalStakedUnits = calculateInvested(_user);
+        return _totalEarnings;
+    }
 
-        uint256 _yourCratiois = 0;
-        bool isUnderCollaterilized;
-        bool isOverCollaterilized;
-        uint256 _totalTokenToMintOrBurn;
-        if (_totalEarnings >= _totalStakedUnits) {
-            _yourCratiois = (_totalEarnings.sub(_totalStakedUnits))
-                .div(_totalStakedUnits)
-                .mul(100);
-            isUnderCollaterilized = false;
-            isOverCollaterilized = true;
-            _totalTokenToMintOrBurn = _totalStakedUnits.mul(_yourCratiois).div(
-                100
-            );
-        } else {
-            _yourCratiois = (_totalEarnings.sub(_totalStakedUnits))
-                .div(_totalStakedUnits)
-                .mul(100);
-            isUnderCollaterilized = true;
-            isOverCollaterilized = false;
-            _totalTokenToMintOrBurn = _totalStakedUnits.mul(_yourCratiois).div(
-                100
-            );
-        }
+    function getMyCollateralRatio(address _user)
+        public
+        view
+        returns (uint256 _totalActual, uint256 _totalExpected)
+    {
+        //updating Other synthetix debit
 
-        return (
-            _yourCratiois,
-            isUnderCollaterilized,
-            isOverCollaterilized,
-            _totalTokenToMintOrBurn
-        );
+        uint256 _totalActualValues = GetEarnings(_user);
+        uint256 _totalExpectedValues = calculateInvested(_user);
+        return (_totalActualValues, _totalExpectedValues);
     }
 
     function calculateInvested(address _user) internal view returns (uint256) {
         uint256 _totalXDCDeposited = deposits[_user].xdcDeposit;
         uint256 _totalPLIDeposited = deposits[_user].pliDeposit;
+        uint256 _totalXDUSDFORPLI = 0;
+        uint256 _totalXDUSDFORXDC = 0;
 
-        uint256 _totalXDUSDFORXDC = _totalXDCDeposited
-            .multiplyDecimal(ExchangeRate().showCurrentPrice("XDC").div(10000))
-            .div(minCRatio);
-        uint256 _totalXDUSDFORPLI = _totalPLIDeposited
-            .multiplyDecimal(ExchangeRate().showCurrentPrice("PLI").div(10000))
-            .div(minCRatio);
+        if (_totalXDCDeposited > 0) {
+            uint256 _currentPrice = ExchangeRate().showCurrentPrice("XDC");
+            _totalXDUSDFORXDC = _totalXDCDeposited.mul(_currentPrice);
+        }
+        if (_totalPLIDeposited > 0) {
+            uint256 _currentPrice = ExchangeRate().showCurrentPrice("PLI");
+            _totalXDUSDFORPLI = _totalPLIDeposited.mul(_currentPrice);
+        }
 
-        uint256 _finalSummedXDUSD = _totalXDUSDFORXDC.add(_totalXDUSDFORPLI);
-        return _finalSummedXDUSD;
+        uint256 _xdusdWorthforInvested = _totalXDUSDFORXDC.add(
+            _totalXDUSDFORPLI
+        );
+        uint256 _tokenAfterCratio = (_xdusdWorthforInvested /
+            (minCRatio / MAX_BPS)) / 10000;
+
+        return _tokenAfterCratio;
     }
 
     //internal function for transferpayment
@@ -439,4 +469,10 @@ contract XSynProtocol is Constants, AddressResolver {
 
     /* ========== EVENTS ========== */
     event MinimumDepositAmountUpdated(uint256 amount);
+    event calculatedRatio(
+        uint256 collatrealApplied,
+        uint256 usdTomint,
+        uint256 currentPrice
+    );
+    event emitRatio(uint256 cratio, uint256 earnings, uint256 stakings);
 }

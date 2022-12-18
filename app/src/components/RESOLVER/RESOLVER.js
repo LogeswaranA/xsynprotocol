@@ -12,14 +12,14 @@ function RESOLVER() {
   const addAddress = async (event) => {
     event.preventDefault();
     setSubmitting(true);
-    // let _name =  ethers.utils.formatBytes32String("EXCHANGERATE");
-    // let _destination = "0x717cb6C73e80b084E8C5E367577960719fe257F8";
+    let _name =  ethers.utils.formatBytes32String("EXCHANGERATE");
+    let _destination = "0x717cb6C73e80b084E8C5E367577960719fe257F8";
     // let _name =  ethers.utils.formatBytes32String("XSynProtocol");
     // let _destination = "0xaCf3bB4AE2069344695ca40c43183996Cf34A06f";
     // let _name = ethers.utils.formatBytes32String("XDUSD");
     // let _destination = "0x83c0f9f3Ec1cBDcE217aB31719F711202E0980F2";
-        let _name = ethers.utils.formatBytes32String("XSynExchange");
-    let _destination = "0xAeD671BC7bF3161fb33A1994562Cd10178B232Ee";
+    //     let _name = ethers.utils.formatBytes32String("XSynExchange");
+    // let _destination = "0xAeD671BC7bF3161fb33A1994562Cd10178B232Ee";
     //     let _name = "XDBTC";
     // let _destination = "0x711312CE80Bb3Fe0865cec30f20668342501706c";
     //         let _name = "XDETH";

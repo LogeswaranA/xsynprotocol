@@ -17,7 +17,6 @@ contract XDPAX is XRC20, State {
 
     function mint(address _caller, uint256 _amountToMint)
         external
-        onlyAssociatedContract
         returns (bool)
     {
         _mint(_caller, _amountToMint);

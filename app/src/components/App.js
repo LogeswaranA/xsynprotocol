@@ -2,6 +2,8 @@ import { ethers } from 'ethers';
 import './App.css';
 import RESOLVER from './RESOLVER/RESOLVER';
 import Xsyn from './XSyn/Xsyn';
+import XsynExchange from './XSynExchange/XsynExchange';
+
 
 import Header from './Header/Header';
 
@@ -9,7 +11,15 @@ import { abi as addressresolverabi } from '../artifacts/contracts/AddressResolve
 import { ADDRESSRESOLVER as addressresolver } from '../output.json';
 
 import { abi as xsynabi } from '../artifacts/contracts/XSynProtocol.sol/XSynProtocol.json';
-import { XSYNPROTOCOL as xsynaddress } from '../output.json';
+import { XSynProtocol as xsynaddress } from '../output.json';
+
+import { abi as xsynexchangeabi } from '../artifacts/contracts/XSynExchange.sol/XSynExchange.json';
+import { XSynExchange as xsynexchangeaddress } from '../output.json';
+
+import { abi as xrc20abi } from '../xrc20/xrc20.json';
+import { XDUSD } from '../output.json';
+import { pliaddress } from '../output.json';
+
 
 import { useState } from 'react';
 import { ToastContainer } from 'react-toastify';
@@ -37,9 +47,12 @@ function App() {
 
     const AddresssResolver = await createContractInstance(addressresolver, addressresolverabi, provider);
     const XsynProtocol = await createContractInstance(xsynaddress, xsynabi, provider);
+    const XSynExchange = await createContractInstance(xsynexchangeaddress, xsynexchangeabi, provider);
+    const pli = await createContractInstance(pliaddress, xrc20abi, provider);
+    const xdusd = await createContractInstance(XDUSD,xrc20abi,provider);
 
     const account = signer.getAddress();
-    setethereumContext({ provider, AddresssResolver, account,XsynProtocol })
+    setethereumContext({ provider, AddresssResolver, account,XsynProtocol,XSynExchange ,pli,xdusd})
     log("Connect", "Get Address", await signer.getAddress());
     setconnecting(true);
   }
@@ -55,8 +68,13 @@ function App() {
       </header>
       <section className="App-content">
         <EthereumContext.Provider value={ethereumContext}>
-          <RESOLVER />
+        <h1 className='text-center'> XSyn Protocol APIs</h1><br/>
+
           <Xsyn />
+          <h1 className='text-center'> Exchange APIs</h1>
+          <br/>
+
+          <XsynExchange/>
         </EthereumContext.Provider>
       </section>
       <ToastContainer hideProgressBar={true} />
