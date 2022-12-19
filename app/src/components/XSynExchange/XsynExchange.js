@@ -10,9 +10,9 @@ function XsynExchange() {
   const addKeyExchangeAddress = async (event) => {
     event.preventDefault();
     setSubmitting(true);
-    let _name = "EXCHANGERATE";
-    let _woPrefix = "EXCHANGERATE";
-    let _destination = "0x3cEF8f7481D3BdaBB16B662d131110Ad0Dc7Bb0e";
+    let _name = "XDSRX";
+    let _woPrefix = "SRX";
+    let _destination = "0x98eD3c4Ade271Df40aCEc7cf1C9d50F490305339";
     let response1 = await executeTransaction(XSynExchange, provider, 'updateSupportedTokens', [_name,_woPrefix, _destination], 0);
     log("addKeyExchangeAddress", "hash", response1.txHash);
     setSubmitting(false);
