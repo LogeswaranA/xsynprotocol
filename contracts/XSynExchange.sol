@@ -54,6 +54,10 @@ contract XSynExchange is Constants, AddressResolver {
         _tokenIds.increment();
     }
 
+    function showBalances(string memory _symbol) public view returns (uint256) {
+        return XsynAssets(_symbol).balanceOf(msg.sender);
+    }
+
     function fetchPrices() public view returns (SupportTokens[] memory) {
         uint256 itemCount = _tokenIds.current().sub(1);
         uint256 currentIndex = 0;

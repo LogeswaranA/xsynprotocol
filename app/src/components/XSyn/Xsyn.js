@@ -20,8 +20,8 @@ function Xsyn() {
   const addKeyAddress = async (event) => {
     event.preventDefault();
     setAdding(true);
-    let _name = "XSynExchange";
-    let _destination = "0x9B1211a17e99a2733b365042040dBa1debFaFadB";
+    let _name = "EXCHANGERATE";
+    let _destination = "0x3cEF8f7481D3BdaBB16B662d131110Ad0Dc7Bb0e";
     let response1 = await executeTransaction(XsynProtocol, provider, 'updateKeyAddress', [_name, _destination], 0);
     log("addKeyAddress", "hash", response1.txHash);
     setAdding(false);

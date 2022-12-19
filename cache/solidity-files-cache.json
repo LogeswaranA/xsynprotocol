@@ -993,8 +993,8 @@
       ]
     },
     "/Users/lokesh/projects/xSynProject/contracts/XSynExchange.sol": {
-      "lastModificationDate": 1671446559623,
-      "contentHash": "4a1ab694c0696f4f3e8266581547c300",
+      "lastModificationDate": 1671459004183,
+      "contentHash": "9954782bdb0744b97b157ffa12e99d4e",
       "sourceName": "contracts/XSynExchange.sol",
       "solcConfig": {
         "version": "0.8.4",
@@ -1037,8 +1037,8 @@
       ]
     },
     "/Users/lokesh/projects/xSynProject/contracts/interfaces/IXsynExec.sol": {
-      "lastModificationDate": 1670921480165,
-      "contentHash": "a06e49acec30ebdfc7e2deefc633fe27",
+      "lastModificationDate": 1671456278335,
+      "contentHash": "2748803e7259526c68b368830eb3274c",
       "sourceName": "contracts/interfaces/IXsynExec.sol",
       "solcConfig": {
         "version": "0.8.4",
