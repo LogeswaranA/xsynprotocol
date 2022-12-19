@@ -3,15 +3,15 @@ import './Xsyn.css';
 const { executeTransaction, EthereumContext, log, queryData, convertPriceToEth, queryEvents } = require('react-solidity-web3');
 
 function Xsyn() {
-  
+
   const [submitting, setSubmitting] = useState(false);
   const { provider, XsynProtocol } = useContext(EthereumContext);
 
   const addKeyAddress = async (event) => {
     event.preventDefault();
     setSubmitting(true);
-    let _name = "EXCHANGERATE";
-    let _destination = "0x3cEF8f7481D3BdaBB16B662d131110Ad0Dc7Bb0e";
+    let _name = "XSynExchange";
+    let _destination = "0x85053735d6E2E82BA3Ffd42fcF9BA9020d98Ea5C";
     let response1 = await executeTransaction(XsynProtocol, provider, 'updateKeyAddress', [_name, _destination], 0);
     log("addKeyAddress", "hash", response1.txHash);
     setSubmitting(false);
@@ -34,8 +34,8 @@ function Xsyn() {
     let _totSynthsPurchased = await convertPriceToEth("1", "XDC");
     let addr = "0x4e1945cEc2539a9be460aB0aa7BdC1EADebde75e";
     let _symbolPurchased = "XDPAX";
-    console.log("_totUsdSwapped is", _totUsdSwapped,_totSynthsPurchased);
-    let response1 = await executeTransaction(XsynProtocol, provider, 'updateDebtPool', [addr,_totUsdSwapped,_totSynthsPurchased,_symbolPurchased], 0);
+    console.log("_totUsdSwapped is", _totUsdSwapped, _totSynthsPurchased);
+    let response1 = await executeTransaction(XsynProtocol, provider, 'updateDebtPool', [addr, _totUsdSwapped, _totSynthsPurchased, _symbolPurchased], 0);
     log("updateDebtPool", "hash", response1.txHash);
     setSubmitting(false);
   }
@@ -86,7 +86,24 @@ function Xsyn() {
     setSubmitting(false);
   }
 
+  const getEstimation = async (event) => {
+    event.preventDefault();
+    setSubmitting(true);
+    let _totTokentoSend = await convertPriceToEth("200", "XDC");
+    let _symbol = "XDC";
+    let response1 = await queryData(XsynProtocol, provider, 'getEstimation', [_totTokentoSend, _symbol]);
+    log("getMyCollateralRatio", "hash", response1)
+    setSubmitting(false);
+  }
+
   return <div className="Container">
+    <div>
+      <h1>getEstimation</h1><br></br>
+      <form onSubmit={getEstimation}>
+        <button type="submit" disabled={submitting}> {submitting ? 'Estimating..' : 'Get Estmation'}</button>
+      </form>
+    </div>
+    <div></div>
     <div>
       <h1>AddKeyAddress</h1><br></br>
       <form onSubmit={addKeyAddress}>
@@ -135,7 +152,7 @@ function Xsyn() {
         <button type="submit" disabled={submitting}> {submitting ? 'update..' : 'Update Debt'}</button>
       </form>
     </div>
-  </div> 
+  </div>
 }
 
 

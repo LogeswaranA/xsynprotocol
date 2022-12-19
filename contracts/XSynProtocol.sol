@@ -114,12 +114,28 @@ contract XSynProtocol is Constants, AddressResolver {
         internal
         view
         returns (
-            uint256 // Returns the number of Synths (sUSD) Minted
+            uint256 // Returns the number of Synths (xdusd) Minted
         )
     {
         uint256 _currentPrice = ExchangeRate().showCurrentPrice(_symbol);
         uint256 _xdusdActual = _units.mul(_currentPrice);
         return _xdusdActual / 10000;
+    }
+
+    function getEstimation(uint256 _units, string memory _symbol)
+        public
+        view
+        returns (
+            uint256 // Returns the number of Synths (Xdusd) Minted
+        )
+    {
+        
+        uint256 _currentPrice = ExchangeRate().showCurrentPrice(_symbol);
+        uint256 _xdusdActual = _units.mul(_currentPrice);
+        uint256 _totalTokenEligbleToMintAfterCRatio = (_xdusdActual /
+            (minCRatio / MAX_BPS)) / 10000;
+
+        return _totalTokenEligbleToMintAfterCRatio;
     }
 
     function calculateXDUSD(
@@ -129,7 +145,7 @@ contract XSynProtocol is Constants, AddressResolver {
     )
         internal
         returns (
-            uint256 // Returns the number of Synths (sUSD) Minted
+            uint256 // Returns the number of Synths (xdusd) Minted
         )
     {
         uint256 _xdusdActual;
@@ -165,7 +181,7 @@ contract XSynProtocol is Constants, AddressResolver {
         external
         payable
         returns (
-            uint256 // Returns the number of Synths (sUSD) Minted
+            uint256 // Returns the number of Synths (xdusd) Minted
         )
     {
         require(
@@ -234,7 +250,7 @@ contract XSynProtocol is Constants, AddressResolver {
     function mintxdUSDForPLI(uint256 _pliVal, address _tokenAddress)
         external
         returns (
-            uint256 // Returns the number of Synths (sUSD) Minted
+            uint256 // Returns the number of Synths (xdusd) Minted
         )
     {
         require(
@@ -342,7 +358,7 @@ contract XSynProtocol is Constants, AddressResolver {
         uint256 _totUsdSwapped,
         uint256 _totSynthsPurchased,
         string memory _symbolPurchased
-    ) public returns(bool)  {
+    ) public returns (bool) {
         //updating Other synthetix debit
         DebtPool memory debtTotal = debtTotalPool[_user][_symbolPurchased];
         uint256 _synthValue = debtTotal.synthValue.add(_totSynthsPurchased);
@@ -371,10 +387,10 @@ contract XSynProtocol is Constants, AddressResolver {
         return true;
     }
 
-    function updateDebtPoolXDUSD(
-        address _user,
-        uint256 _totUsdSwapped
-    ) public returns(bool) {
+    function updateDebtPoolXDUSD(address _user, uint256 _totUsdSwapped)
+        public
+        returns (bool)
+    {
         ///updating XDUSD debit
         DebtPool memory xdUSDDebtTotal = debtTotalPool[_user]["XDUSD"];
         uint256 _xdusdSynthValue = xdUSDDebtTotal.synthValue.sub(
