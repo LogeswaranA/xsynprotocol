@@ -10,9 +10,10 @@ function XsynExchange() {
   const addKeyExchangeAddress = async (event) => {
     event.preventDefault();
     setSubmitting(true);
-    let _name = "XDPAX";
-    let _destination = "0x6eD313a436DF901fc13E647e3d86E8a0a2017409";
-    let response1 = await executeTransaction(XSynExchange, provider, 'updateExchangeKeyAddress', [_name, _destination], 0);
+    let _name = "EXCHANGERATE";
+    let _woPrefix = "EXCHANGERATE";
+    let _destination = "0x3cEF8f7481D3BdaBB16B662d131110Ad0Dc7Bb0e";
+    let response1 = await executeTransaction(XSynExchange, provider, 'updateSupportedTokens', [_name,_woPrefix, _destination], 0);
     log("addKeyExchangeAddress", "hash", response1.txHash);
     setSubmitting(false);
   }
@@ -20,7 +21,7 @@ function XsynExchange() {
   const approveTransfer = async (event) => {
     event.preventDefault();
     setSubmitting(true);
-    let _stakeValue = await convertPriceToEth("1", "XDC");
+    let _stakeValue = await convertPriceToEth("5", "XDC");
     console.log("stakevalue is", _stakeValue);
     let response1 = await executeTransaction(xdusd, provider, 'approve', [XSynExchange.address,_stakeValue], 0);
     log("approveTransfer", "hash", response1.txHash);
@@ -30,8 +31,8 @@ function XsynExchange() {
   const exchangeXDUSDwithSynths = async (event) => {
     event.preventDefault();
     setSubmitting(true);
-    let _amount = await convertPriceToEth("1", "XDC");
-    let _preferredSynthAddress="0x6eD313a436DF901fc13E647e3d86E8a0a2017409";
+    let _amount = await convertPriceToEth("5", "XDC");
+    let _preferredSynthAddress="0xCD65DE13a67c722795A34aD772133df2c891B0C4";
     let  _woprefixSynth="PAX";
     let  _wprefixSynth="XDPAX";
     console.log("stakevalue is", _amount);
@@ -49,8 +50,8 @@ function XsynExchange() {
   const queryExchangeAddress = async (event) => {
     event.preventDefault();
     setSubmitting(true);
-    let _name = "EXCHANGERATE";
-    let response1 = await queryData(XSynExchange, provider, 'exchangeKeyAddress', [_name]);
+    let _name = "XDPAX";
+    let response1 = await queryData(XSynExchange, provider, 'supportedAddress', [_name]);
     log("queryExchangeAddress", "hash", response1)
     setSubmitting(false);
   }
@@ -66,6 +67,16 @@ function XsynExchange() {
     setSubmitting(false);
   }
 
+  const fetchSyntheticPrices = async (event) => {
+    event.preventDefault();
+    setSubmitting(true);
+    let response1 = await queryData(XSynExchange, provider, 'fetchPrices', []);
+    log("fetchSyntheticPrices", "hash", response1)
+    setSubmitting(false);
+  }
+
+  
+
   return <div className="Container">
     <div>
       <h1>addKeyExchangeAddress</h1><br></br>
@@ -77,6 +88,12 @@ function XsynExchange() {
       <h1>Query Exchange Address</h1><br></br>
       <form onSubmit={queryExchangeAddress}>
         <button type="submit" disabled={submitting}> {submitting ? 'Querying..' : 'Query Address'}</button>
+      </form>
+    </div>
+    <div>
+      <h1>Fetch Synthetic Prices</h1><br></br>
+      <form onSubmit={fetchSyntheticPrices}>
+        <button type="submit" disabled={submitting}> {submitting ? 'Fetching..' : 'Fetch Synthetic Assets'}</button>
       </form>
     </div>
     <div>

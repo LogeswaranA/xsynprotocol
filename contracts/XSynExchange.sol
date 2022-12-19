@@ -9,25 +9,33 @@ import "./AddressResolver.sol";
 import "./utils/Constants.sol";
 import "./utils/SafeDecimalMath.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/utils/Counters.sol";
 
 contract XSynExchange is Constants, AddressResolver {
     using SafeMath for uint256;
     using SafeDecimalMath for uint256;
+    using Counters for Counters.Counter;
+    Counters.Counter private _tokenIds;
 
     string public constant CONTRACTNAME = "XSynExchange";
     string internal constant CONTRACT_XSYNPROTOCOL = "XSynProtocol";
-    string internal constant CONTRACT_XDBTC = "XDBTC";
-    string internal constant CONTRACT_XDETH = "XDETH";
-    string internal constant CONTRACT_XDPAX = "XDPAX";
     string internal constant CONTRACT_XDUSD = "XDUSD";
     string internal constant CONTRACT_EXCHANGERATE = "EXCHANGERATE";
 
     mapping(address => uint256) public mintr;
     address public contractOwner;
-
     uint256 public minimumXDUSDDepositAmount = 1 ether;
 
-    mapping(string => address) public exchangeKeyAddress;
+    mapping(string => address) public supportedAddress;
+
+    struct SupportTokens {
+        uint256 _tokenId;
+        string Symbol;
+        string woPrefix;
+        uint256 currentprice;
+        address TokenAddress;
+    }
+    mapping(uint256 => SupportTokens) private idToTokens;
 
     /* Stores Exhanges from users. */
     struct ExchangeEntry {
@@ -43,13 +51,40 @@ contract XSynExchange is Constants, AddressResolver {
 
     constructor() {
         contractOwner = msg.sender;
+        _tokenIds.increment();
     }
 
-    function updateExchangeKeyAddress(string memory _name, address _destination)
+    function fetchPrices() public view returns (SupportTokens[] memory) {
+        uint256 itemCount = _tokenIds.current().sub(1);
+        uint256 currentIndex = 0;
+        SupportTokens[] memory items = new SupportTokens[](itemCount);
+        for (uint256 i = 0; i < itemCount; i++) {
+            uint256 currentId = i + 1;
+            SupportTokens storage currentItem = idToTokens[currentId];
+            items[currentIndex] = currentItem;
+            uint256 _cprice = ExchangeRate().showCurrentPrice(
+                currentItem.woPrefix
+            );
+            items[currentIndex].currentprice = _cprice / 10000;
+            currentIndex += 1;
+        }
+        return items;
+    }
+
+    function updateSupportedTokens(string memory _name,string memory _woPrefix, address _destination)
         external
         onlyAuthorized
     {
-        exchangeKeyAddress[_name] = _destination;
+        uint256 itemId = _tokenIds.current();
+        _tokenIds.increment();
+        idToTokens[itemId] = SupportTokens(
+            itemId,
+            _name,
+            _woPrefix,
+            0,
+            _destination
+        );
+        supportedAddress[_name] = _destination;
     }
 
     /* ========== MODIFIERS ========== */
@@ -98,16 +133,17 @@ contract XSynExchange is Constants, AddressResolver {
             "XDUSD amount Should be minimumXDUSDDepositAmount limit"
         );
 
-        XRC20Balance(msg.sender, exchangeKeyAddress[CONTRACT_XDUSD], _amount);
-        XRC20Allowance(msg.sender, exchangeKeyAddress[CONTRACT_XDUSD], _amount);
+        XRC20Balance(msg.sender, supportedAddress[CONTRACT_XDUSD], _amount);
+        XRC20Allowance(msg.sender, supportedAddress[CONTRACT_XDUSD], _amount);
         uint256 synthsToMint = calculateUnits(_amount, _woprefixSynth);
-        transferFundsToContract(_amount, exchangeKeyAddress[CONTRACT_XDUSD]);
+        transferFundsToContract(_amount, supportedAddress[CONTRACT_XDUSD]);
         return
             _exchangeXDUSDForSynths(
                 synthsToMint,
                 _amount,
                 _preferredSynthAddress,
-                _wprefixSynth
+                _wprefixSynth,
+                _woprefixSynth
             );
     }
 
@@ -115,7 +151,8 @@ contract XSynExchange is Constants, AddressResolver {
         uint256 _synthsToMint,
         uint256 _xdusdAmt,
         address _preferredSynthAddress,
-        string memory _wprefixSynth
+        string memory _wprefixSynth,
+        string memory _woprefixSynth
     ) internal returns (uint256) {
         ExchangeEntry memory exchange = exchanges[msg.sender][_wprefixSynth];
         uint256 _xdUsdNewBalance = exchange.xdUsdDeposit.add(_xdusdAmt);
@@ -129,7 +166,7 @@ contract XSynExchange is Constants, AddressResolver {
             block.timestamp
         );
         //mint respective Synthetix for the amount of XDC they staked
-        XsynExec(_wprefixSynth).mint(msg.sender, _synthsToMint);
+        XsynAssets(_wprefixSynth).mint(msg.sender, _synthsToMint);
         // XSynProtocol().updateDebtPoolSynth(
         //     msg.sender,
         //     _xdusdAmt,
@@ -137,24 +174,28 @@ contract XSynExchange is Constants, AddressResolver {
         //     _wprefixSynth
         // );
         // XSynProtocol().updateDebtPoolXDUSD(msg.sender, _xdusdAmt);
-        emit updatedebt(msg.sender, _xdusdAmt, _synthsToMint, _wprefixSynth);
+        emit updatedebt(msg.sender, _xdusdAmt, _synthsToMint, _woprefixSynth);
         return _synthsToMint;
     }
 
-    function XsynExec(string memory _Symbol) internal view returns (IXsynExec) {
-        return IXsynExec(exchangeKeyAddress[_Symbol]);
+    function XsynAssets(string memory _Symbol)
+        internal
+        view
+        returns (IXsynExec)
+    {
+        return IXsynExec(supportedAddress[_Symbol]);
     }
 
     function ExchangeRate() internal view returns (IExchangeRate) {
-        return IExchangeRate(exchangeKeyAddress[CONTRACT_EXCHANGERATE]);
+        return IExchangeRate(supportedAddress[CONTRACT_EXCHANGERATE]);
     }
 
     function XDUSDCore() internal view returns (IXDUSDCore) {
-        return IXDUSDCore(exchangeKeyAddress[CONTRACT_XDUSD]);
+        return IXDUSDCore(supportedAddress[CONTRACT_XDUSD]);
     }
 
     function XSynProtocol() internal view returns (IXsynProtocol) {
-        return IXsynProtocol(exchangeKeyAddress[CONTRACT_XSYNPROTOCOL]);
+        return IXsynProtocol(supportedAddress[CONTRACT_XSYNPROTOCOL]);
     }
 
     function XRC20Balance(

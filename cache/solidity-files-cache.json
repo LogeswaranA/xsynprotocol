@@ -993,8 +993,8 @@
       ]
     },
     "/Users/lokesh/projects/xSynProject/contracts/XSynExchange.sol": {
-      "lastModificationDate": 1671389568566,
-      "contentHash": "42bd5c6f29af68d9ecbf819a6f19ea96",
+      "lastModificationDate": 1671441789858,
+      "contentHash": "0a9469afcdeae42168d62946a982e6ac",
       "sourceName": "contracts/XSynExchange.sol",
       "solcConfig": {
         "version": "0.8.4",
@@ -1026,7 +1026,8 @@
         "./AddressResolver.sol",
         "./utils/Constants.sol",
         "./utils/SafeDecimalMath.sol",
-        "@openzeppelin/contracts/token/ERC20/IERC20.sol"
+        "@openzeppelin/contracts/token/ERC20/IERC20.sol",
+        "@openzeppelin/contracts/utils/Counters.sol"
       ],
       "versionPragmas": [
         "^0.8.0"
@@ -1103,10 +1104,10 @@
         "IXsynProtocol"
       ]
     },
-    "/Users/lokesh/projects/xSynProject/contracts/XDPAX.sol": {
-      "lastModificationDate": 1671368687522,
-      "contentHash": "7dad195adc1d30370f00e0cfc4c6a97b",
-      "sourceName": "contracts/XDPAX.sol",
+    "/Users/lokesh/projects/xSynProject/node_modules/@openzeppelin/contracts/utils/Counters.sol": {
+      "lastModificationDate": 1669811881228,
+      "contentHash": "74654e3ae5d7f39555055dfe244dab7a",
+      "sourceName": "@openzeppelin/contracts/utils/Counters.sol",
       "solcConfig": {
         "version": "0.8.4",
         "settings": {
@@ -1129,21 +1130,18 @@
           }
         }
       },
-      "imports": [
-        "./XRC20/XRC20.sol",
-        "./utils/State.sol"
-      ],
+      "imports": [],
       "versionPragmas": [
         "^0.8.0"
       ],
       "artifacts": [
-        "XDPAX"
+        "Counters"
       ]
     },
-    "/Users/lokesh/projects/xSynProject/contracts/XDETH.sol": {
-      "lastModificationDate": 1671368684619,
-      "contentHash": "9e724768e934fd9b8ce5cccfdaf8cf11",
-      "sourceName": "contracts/XDETH.sol",
+    "/Users/lokesh/projects/xSynProject/contracts/Assets/SyntheticAssets.sol": {
+      "lastModificationDate": 1671436294009,
+      "contentHash": "8fbdff4393d7773f5a2853e9a4a5acd8",
+      "sourceName": "contracts/Assets/SyntheticAssets.sol",
       "solcConfig": {
         "version": "0.8.4",
         "settings": {
@@ -1167,51 +1165,14 @@
         }
       },
       "imports": [
-        "./XRC20/XRC20.sol",
-        "./utils/State.sol"
+        "../XRC20/XRC20.sol",
+        "../utils/State.sol"
       ],
       "versionPragmas": [
         "^0.8.0"
       ],
       "artifacts": [
-        "XDETH"
-      ]
-    },
-    "/Users/lokesh/projects/xSynProject/contracts/XDBTC.sol": {
-      "lastModificationDate": 1671368679205,
-      "contentHash": "3ea96d03f33f6c4834e72c5e72d5e2cf",
-      "sourceName": "contracts/XDBTC.sol",
-      "solcConfig": {
-        "version": "0.8.4",
-        "settings": {
-          "optimizer": {
-            "enabled": true,
-            "runs": 200
-          },
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          }
-        }
-      },
-      "imports": [
-        "./XRC20/XRC20.sol",
-        "./utils/State.sol"
-      ],
-      "versionPragmas": [
-        "^0.8.0"
-      ],
-      "artifacts": [
-        "XDBTC"
+        "SyntheticAssets"
       ]
     }
   }

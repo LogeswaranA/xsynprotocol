@@ -22,11 +22,11 @@ async function main() {
   // const xSyn = await xSynContract.deploy(200).then(f => f.deployed());;
   // console.log("XSyn Protocol deployed", xSyn.address);
 
-  const xSyn = await deploy('XSynProtocol', 200);
-  console.log("XSyn deployed", xSyn.address);
+  const XSynProtocol = await deploy('XSynProtocol', 200);
+  console.log("XSynProtocol deployed", XSynProtocol.address);
 
-  const xdusd = await deploy('XDUSDCore', "XDUSD Contract", "XDUSD", xSyn.address);
-  console.log("XDUSDCore deployed", xdusd.address)
+  const xdusd = await deploy('XDUSDCore', "XDUSD Contract", "XDUSD", XSynProtocol.address);
+  console.log("XDUSD deployed", xdusd.address)
 
 
   // const XSynExchange = await ethers.getContractFactory("XSynExchange", {
@@ -40,18 +40,41 @@ async function main() {
   const xsynexchange = await deploy('XSynExchange');
   console.log("XSynExchange deployed", xsynexchange.address);
 
-  const xdbtc = await deploy('XDBTC', "XDBTC Contract", "XDBTC", xsynexchange.address);
+  const xdbtc = await deploy('SyntheticAssets', "XDBTC Contract", "XDBTC", xsynexchange.address);
   console.log("XDBTC deployed", xdbtc.address)
 
-  const xdeth = await deploy('XDETH', "XDETH Contract", "XDETH", xsynexchange.address);
+  const xdeth = await deploy('SyntheticAssets', "XDETH Contract", "XDETH", xsynexchange.address);
   console.log("XDETH deployed", xdeth.address)
 
-  const xdpax = await deploy('XDPAX', "XDPAX Contract", "XDPAX", xsynexchange.address);
+  const xdpax = await deploy('SyntheticAssets', "XDPAX Contract", "XDPAX", xsynexchange.address);
   console.log("XDPAX deployed", xdpax.address)
 
+  const xdsol = await deploy('SyntheticAssets', "XDSOL Contract", "XDSOL", xsynexchange.address);
+  console.log("XDSOL deployed", xdsol.address)
+
+  const xdxau = await deploy('SyntheticAssets', "XDXAU Contract", "XDXAU", xsynexchange.address);
+  console.log("XDXAU deployed", xdxau.address)
+
+  const xdmatic = await deploy('SyntheticAssets', "XDMATIC Contract", "XDMATIC", xsynexchange.address);
+  console.log("XDMATIC deployed", xdmatic.address)
+
+  const xdaave = await deploy('SyntheticAssets', "XDAAVE Contract", "XDAAVE", xsynexchange.address);
+  console.log("XDAAVE deployed", xdaave.address)
+
+  const xdcgo = await deploy('SyntheticAssets', "XDCGO Contract", "XDCGO", xsynexchange.address);
+  console.log("XDCGO deployed", xdcgo.address)
+
+  const xdprnt = await deploy('SyntheticAssets', "XDPRNT Contract", "XDPRNT", xsynexchange.address);
+  console.log("XDPRNT deployed", xdprnt.address)
+
+  const xdxsp = await deploy('SyntheticAssets', "XDXSP Contract", "XDXSP", xsynexchange.address);
+  console.log("XDXSP deployed", xdxsp.address)
+
+  const xdsrx = await deploy('SyntheticAssets', "XDSRX Contract", "XDSRX", xsynexchange.address);
+  console.log("XDSRX deployed", xdsrx.address)
 
   writeFileSync('output.json', JSON.stringify({
-    XSynProtocol: xSyn.address,
+    XSynProtocol: XSynProtocol.address,
     ADDRESSRESOLVER: addr.address,
     EXCHANGERATE: "0x3cEF8f7481D3BdaBB16B662d131110Ad0Dc7Bb0e",
     XDUSD: xdusd.address,
@@ -59,6 +82,14 @@ async function main() {
     XDBTC: xdbtc.address,
     XDETH: xdeth.address,
     XDPAX: xdpax.address,
+    XDSOL: xdsol.address,
+    XDXAU: xdxau.address,
+    XDMATIC: xdmatic.address,
+    XDAAVE: xdaave.address,
+    XDCGO: xdcgo.address,
+    XDPRNT: xdprnt.address,
+    XDXSP: xdxsp.address,
+    XDSRX: xdsrx.address,
     SafeDecimalMath: safeDecMath.address,
     pliaddress: "0xb3db178db835b4dfcb4149b2161644058393267d"
   }, null, 2));

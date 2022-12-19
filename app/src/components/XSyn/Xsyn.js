@@ -5,31 +5,41 @@ const { executeTransaction, EthereumContext, log, queryData, convertPriceToEth, 
 function Xsyn() {
 
   const [submitting, setSubmitting] = useState(false);
-  const { provider, XsynProtocol } = useContext(EthereumContext);
+  const [adding, setAdding] = useState(false);
+  const [staking, setStaking] = useState(false);
+  const [updating, setUpdating] = useState(false);
+  const [showing, setShowing] = useState(false);
+  const [querying, setQuerying] = useState(false);
+  const [getting, setGetting] = useState(false);
+  const [approving, setApproving] = useState(false);
+  const [collecting, setCollecting] = useState(false);
+  
+
+  const { provider, XsynProtocol , pli} = useContext(EthereumContext);
 
   const addKeyAddress = async (event) => {
     event.preventDefault();
-    setSubmitting(true);
-    let _name = "XSynExchange";
-    let _destination = "0x85053735d6E2E82BA3Ffd42fcF9BA9020d98Ea5C";
+    setAdding(true);
+    let _name = "XDUSD";
+    let _destination = "0x626Dd96511d7C0EBA93F5FBAC7B9D4931b72B378";
     let response1 = await executeTransaction(XsynProtocol, provider, 'updateKeyAddress', [_name, _destination], 0);
     log("addKeyAddress", "hash", response1.txHash);
-    setSubmitting(false);
+    setAdding(false);
   }
 
   const stakeXDCMintXDUSD = async (event) => {
     event.preventDefault();
-    setSubmitting(true);
-    let _stakeValue = await convertPriceToEth("200", "XDC");
+    setStaking(true);
+    let _stakeValue = await convertPriceToEth("1000", "XDC");
     console.log("stakevalue is", _stakeValue);
     let response1 = await executeTransaction(XsynProtocol, provider, 'mintxdUSDForXDC', [], _stakeValue);
     log("stakeXDCMintXDUSD", "hash", response1.txHash);
-    setSubmitting(false);
+    setStaking(false);
   }
 
   const updateDebtPool = async (event) => {
     event.preventDefault();
-    setSubmitting(true);
+    setUpdating(true);
     let _totUsdSwapped = await convertPriceToEth("1", "XDC");
     let _totSynthsPurchased = await convertPriceToEth("1", "XDC");
     let addr = "0x4e1945cEc2539a9be460aB0aa7BdC1EADebde75e";
@@ -37,26 +47,26 @@ function Xsyn() {
     console.log("_totUsdSwapped is", _totUsdSwapped, _totSynthsPurchased);
     let response1 = await executeTransaction(XsynProtocol, provider, 'updateDebtPool', [addr, _totUsdSwapped, _totSynthsPurchased, _symbolPurchased], 0);
     log("updateDebtPool", "hash", response1.txHash);
-    setSubmitting(false);
+    setUpdating(false);
   }
 
   const showMyDeposits = async (event) => {
     event.preventDefault();
-    setSubmitting(true);
+    setShowing(true);
     let addr = "0x4e1945cEc2539a9be460aB0aa7BdC1EADebde75e";
     console.log("addr is", addr);
     let response1 = await queryData(XsynProtocol, provider, 'deposits', [addr]);
     log("showMyDeposits", "hash", response1);
-    setSubmitting(false);
+    setShowing(false);
   }
 
   const queryAddress = async (event) => {
     event.preventDefault();
-    setSubmitting(true);
+    setQuerying(true);
     let _name = "XDUSD";
     let response1 = await queryData(XsynProtocol, provider, 'keyaddress', [_name]);
     log("queryAddress", "hash", response1)
-    setSubmitting(false);
+    setQuerying(false);
   }
 
   const showPrices = async (event) => {
@@ -70,20 +80,20 @@ function Xsyn() {
 
   const getMyCollateralRatio = async (event) => {
     event.preventDefault();
-    setSubmitting(true);
+    setGetting(true);
     let addr = "0x4e1945cEc2539a9be460aB0aa7BdC1EADebde75e";
     let response1 = await queryData(XsynProtocol, provider, 'getMyCollateralRatio', [addr]);
     log("getMyCollateralRatio", "hash", response1)
-    setSubmitting(false);
+    setGetting(false);
   }
 
   const getMyEarnings = async (event) => {
     event.preventDefault();
-    setSubmitting(true);
+    setCollecting(true);
     let addr = "0x4e1945cEc2539a9be460aB0aa7BdC1EADebde75e";
     let response1 = await queryData(XsynProtocol, provider, 'GetEarnings', [addr]);
-    log("getMyCollateralRatio", "hash", response1)
-    setSubmitting(false);
+    log("getMyEarnings", "hash", response1)
+    setCollecting(false);
   }
 
   const getEstimation = async (event) => {
@@ -92,9 +102,20 @@ function Xsyn() {
     let _totTokentoSend = await convertPriceToEth("200", "XDC");
     let _symbol = "XDC";
     let response1 = await queryData(XsynProtocol, provider, 'getEstimation', [_totTokentoSend, _symbol]);
-    log("getMyCollateralRatio", "hash", response1)
+    log("getEstimation", "hash", response1)
     setSubmitting(false);
   }
+
+  const approveTransferForPLI = async (event) => {
+    event.preventDefault();
+    setApproving(true);
+    let _stakeValue = await convertPriceToEth("1", "PLI");
+    console.log("stakevalue is", _stakeValue);
+    let response1 = await executeTransaction(pli, provider, 'approve', [XsynProtocol.address,_stakeValue], 0);
+    log("approveTransferForPLI", "hash", response1.txHash);
+    setApproving(false);
+  }
+
 
   return <div className="Container">
     <div>
@@ -107,37 +128,37 @@ function Xsyn() {
     <div>
       <h1>AddKeyAddress</h1><br></br>
       <form onSubmit={addKeyAddress}>
-        <button type="submit" disabled={submitting}> {submitting ? 'Adding..' : 'Add Key Address'}</button>
+        <button type="submit" disabled={adding}> {adding ? 'Adding..' : 'Add Key Address'}</button>
       </form>
     </div>
     <div>
       <h1>Query Address</h1><br></br>
       <form onSubmit={queryAddress}>
-        <button type="submit" disabled={submitting}> {submitting ? 'Querying..' : 'Query Address'}</button>
+        <button type="submit" disabled={querying}> {querying ? 'Querying..' : 'Query Address'}</button>
       </form>
     </div>
     <div>
       <h1>stakeXDCMintXDUSD</h1><br></br>
       <form onSubmit={stakeXDCMintXDUSD}>
-        <button type="submit" disabled={submitting}> {submitting ? 'Staking..' : 'Stake XDC'}</button>
+        <button type="submit" disabled={staking}> {staking ? 'Staking..' : 'Stake XDC'}</button>
       </form>
     </div>
     <div>
       <h1>showMyDeposits</h1><br></br>
       <form onSubmit={showMyDeposits}>
-        <button type="submit" disabled={submitting}> {submitting ? 'Showing..' : 'Show Deposits '}</button>
+        <button type="submit" disabled={showing}> {showing ? 'Showing..' : 'Show Deposits '}</button>
       </form>
     </div>
     <div>
       <h1>getMyCollateralRatio</h1><br></br>
       <form onSubmit={getMyCollateralRatio}>
-        <button type="submit" disabled={submitting}> {submitting ? 'Showing..' : 'Get My Collateral Ratio '}</button>
+        <button type="submit" disabled={getting}> {getting ? 'Showing..' : 'Get My Collateral Ratio '}</button>
       </form>
     </div>
     <div>
       <h1>getMyEarnings</h1><br></br>
       <form onSubmit={getMyEarnings}>
-        <button type="submit" disabled={submitting}> {submitting ? 'Earnings..' : 'Get My Earnings '}</button>
+        <button type="submit" disabled={collecting}> {collecting ? 'Earnings..' : 'Get My Earnings '}</button>
       </form>
     </div>
     <div>
@@ -149,7 +170,13 @@ function Xsyn() {
     <div>
       <h1>updateDebtPool</h1><br></br>
       <form onSubmit={updateDebtPool}>
-        <button type="submit" disabled={submitting}> {submitting ? 'update..' : 'Update Debt'}</button>
+        <button type="submit" disabled={updating}> {updating ? 'update..' : 'Update Debt'}</button>
+      </form>
+    </div>
+    <div>
+      <h1>approveTransferForPLI</h1><br></br>
+      <form onSubmit={approveTransferForPLI}>
+        <button type="submit" disabled={approving}> {approving ? 'Approving..' : 'Approve PLI Transfer'}</button>
       </form>
     </div>
   </div>

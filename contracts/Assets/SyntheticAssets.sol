@@ -3,11 +3,10 @@
 pragma solidity ^0.8.0;
 pragma experimental ABIEncoderV2;
 
-import "./XRC20/XRC20.sol";
-import "./utils/State.sol";
+import "../XRC20/XRC20.sol";
+import "../utils/State.sol";
 
-contract XDETH is XRC20, State {
-    string public constant CONTRACT_NAME = "XDETH";
+contract SyntheticAssets is XRC20, State {
 
     // ========== CONSTRUCTOR ==========
     constructor(string memory _name, string memory _symbol,address _associatedContract)
@@ -17,6 +16,7 @@ contract XDETH is XRC20, State {
 
     function mint(address _caller, uint256 _amountToMint)
         external
+        onlyAssociatedContract
         returns (bool)
     {
         _mint(_caller, _amountToMint);
