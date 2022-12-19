@@ -129,7 +129,6 @@ contract XSynProtocol is Constants, AddressResolver {
             uint256 // Returns the number of Synths (Xdusd) Minted
         )
     {
-        
         uint256 _currentPrice = ExchangeRate().showCurrentPrice(_symbol);
         uint256 _xdusdActual = _units.mul(_currentPrice);
         uint256 _totalTokenEligbleToMintAfterCRatio = (_xdusdActual /
@@ -236,7 +235,17 @@ contract XSynProtocol is Constants, AddressResolver {
             false
         );
 
-        tradingPool[msg.sender].push(debtTotalPool[msg.sender]["XDUSD"]);
+        tradingPool[msg.sender].push(
+            DebtPool(
+                msg.sender,
+                "XDUSD",
+                _xdUSDToMintforXDC,
+                0,
+                true,
+                true,
+                false
+            )
+        );
 
         //mint XDUSD for the amount of XDC they staked
         XDUSDCore().mint(msg.sender, _xdUSDToMintforXDC);
@@ -311,7 +320,9 @@ contract XSynProtocol is Constants, AddressResolver {
             false
         );
 
-        tradingPool[msg.sender].push(debtTotalPool[msg.sender]["XDUSD"]);
+        tradingPool[msg.sender].push(
+            DebtPool(msg.sender, "XDUSD", _xdusdAmount, 0, true, true, false)
+        );
 
         //mint XDUSD for the amount of PLI they staked
         XDUSDCore().mint(msg.sender, _xdUSDToMintforPli);
@@ -377,7 +388,7 @@ contract XSynProtocol is Constants, AddressResolver {
             DebtPool(
                 _user,
                 _symbolPurchased,
-                _synthValue,
+                _totSynthsPurchased,
                 _totUsdSwapped,
                 false,
                 false,
@@ -405,7 +416,17 @@ contract XSynProtocol is Constants, AddressResolver {
             false,
             true
         );
-        tradingPool[_user].push(debtTotalPool[_user]["XDUSD"]);
+        tradingPool[_user].push(
+            DebtPool(
+                _user,
+                "XDUSD",
+                _totUsdSwapped,
+                _totUsdSwapped,
+                true,
+                false,
+                true
+            )
+        );
 
         return true;
     }

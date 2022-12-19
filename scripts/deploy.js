@@ -11,6 +11,7 @@ async function main() {
   console.log("SafeDecimalMath deployed", safeDecMath.address)
   const addr = await deploy('AddressResolver');
   console.log("AddressResolver deployed", addr.address)
+  console.log("EXCHANGERATE deployed 0x3cEF8f7481D3BdaBB16B662d131110Ad0Dc7Bb0e");
   // const exchange = await deploy('ExchangeRate', "0x33f4212b027e22af7e6ba21fc572843c0d701cd1", "0x97A6d407f4CD30936679d0a28A3bc2A7F13a2185", "839e3a5a88eb4c59aafb1fcedcdc0dd7");
   // console.log("ExchangeRate deployed", exchange.address);
 

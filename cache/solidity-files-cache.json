@@ -495,8 +495,8 @@
       ]
     },
     "/Users/lokesh/projects/xSynProject/contracts/XSynProtocol.sol": {
-      "lastModificationDate": 1671431250503,
-      "contentHash": "1562d3ddea8e408db008383239c9e272",
+      "lastModificationDate": 1671449417206,
+      "contentHash": "4625deaceac1cc10da3eb2a2c4666e9a",
       "sourceName": "contracts/XSynProtocol.sol",
       "solcConfig": {
         "version": "0.8.4",
@@ -993,8 +993,8 @@
       ]
     },
     "/Users/lokesh/projects/xSynProject/contracts/XSynExchange.sol": {
-      "lastModificationDate": 1671441789858,
-      "contentHash": "0a9469afcdeae42168d62946a982e6ac",
+      "lastModificationDate": 1671446559623,
+      "contentHash": "4a1ab694c0696f4f3e8266581547c300",
       "sourceName": "contracts/XSynExchange.sol",
       "solcConfig": {
         "version": "0.8.4",

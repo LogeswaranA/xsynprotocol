@@ -20,8 +20,8 @@ function Xsyn() {
   const addKeyAddress = async (event) => {
     event.preventDefault();
     setAdding(true);
-    let _name = "XDUSD";
-    let _destination = "0x626Dd96511d7C0EBA93F5FBAC7B9D4931b72B378";
+    let _name = "XSynExchange";
+    let _destination = "0x9B1211a17e99a2733b365042040dBa1debFaFadB";
     let response1 = await executeTransaction(XsynProtocol, provider, 'updateKeyAddress', [_name, _destination], 0);
     log("addKeyAddress", "hash", response1.txHash);
     setAdding(false);
@@ -30,7 +30,7 @@ function Xsyn() {
   const stakeXDCMintXDUSD = async (event) => {
     event.preventDefault();
     setStaking(true);
-    let _stakeValue = await convertPriceToEth("1000", "XDC");
+    let _stakeValue = await convertPriceToEth("500", "XDC");
     console.log("stakevalue is", _stakeValue);
     let response1 = await executeTransaction(XsynProtocol, provider, 'mintxdUSDForXDC', [], _stakeValue);
     log("stakeXDCMintXDUSD", "hash", response1.txHash);
@@ -95,6 +95,16 @@ function Xsyn() {
     log("getMyEarnings", "hash", response1)
     setCollecting(false);
   }
+
+  const queryTradingPool = async (event) => {
+    event.preventDefault();
+    setCollecting(true);
+    let addr = "0x4e1945cEc2539a9be460aB0aa7BdC1EADebde75e";
+    let response1 = await queryData(XsynProtocol, provider, 'tradingPool', [addr,1]);
+    log("queryTradingPool", "hash", response1)
+    setCollecting(false);
+  }
+
 
   const getEstimation = async (event) => {
     event.preventDefault();
@@ -177,6 +187,12 @@ function Xsyn() {
       <h1>approveTransferForPLI</h1><br></br>
       <form onSubmit={approveTransferForPLI}>
         <button type="submit" disabled={approving}> {approving ? 'Approving..' : 'Approve PLI Transfer'}</button>
+      </form>
+    </div>
+    <div>
+      <h1>queryTradingPool</h1><br></br>
+      <form onSubmit={queryTradingPool}>
+        <button type="submit" disabled={approving}> {approving ? 'Querying..' : 'Query Trading Pool'}</button>
       </form>
     </div>
   </div>

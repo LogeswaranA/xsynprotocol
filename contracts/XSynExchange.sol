@@ -62,19 +62,19 @@ contract XSynExchange is Constants, AddressResolver {
             uint256 currentId = i + 1;
             SupportTokens storage currentItem = idToTokens[currentId];
             items[currentIndex] = currentItem;
-            uint256 _cprice = ExchangeRate().showCurrentPrice(
+            items[currentIndex].currentprice = ExchangeRate().showCurrentPrice(
                 currentItem.woPrefix
             );
-            items[currentIndex].currentprice = _cprice / 10000;
             currentIndex += 1;
         }
         return items;
     }
 
-    function updateSupportedTokens(string memory _name,string memory _woPrefix, address _destination)
-        external
-        onlyAuthorized
-    {
+    function updateSupportedTokens(
+        string memory _name,
+        string memory _woPrefix,
+        address _destination
+    ) external onlyAuthorized {
         uint256 itemId = _tokenIds.current();
         _tokenIds.increment();
         idToTokens[itemId] = SupportTokens(
@@ -105,8 +105,8 @@ contract XSynExchange is Constants, AddressResolver {
         )
     {
         uint256 _currentPrice = ExchangeRate().showCurrentPrice(_symbol);
-        uint256 _denominator = _currentPrice.div(10000);
-        uint256 _toMint = _units.div(_denominator);
+        uint256 _actual = _units.div(_currentPrice);
+        uint256 _toMint = _actual.mul(10000);
         return _toMint;
     }
 

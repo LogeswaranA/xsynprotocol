@@ -12,7 +12,7 @@ function XsynExchange() {
     setSubmitting(true);
     let _name = "XDSRX";
     let _woPrefix = "SRX";
-    let _destination = "0x98eD3c4Ade271Df40aCEc7cf1C9d50F490305339";
+    let _destination = "0xE71b63c367F9748728D1aB2E3056fF0E41555184";
     let response1 = await executeTransaction(XSynExchange, provider, 'updateSupportedTokens', [_name,_woPrefix, _destination], 0);
     log("addKeyExchangeAddress", "hash", response1.txHash);
     setSubmitting(false);
@@ -21,7 +21,7 @@ function XsynExchange() {
   const approveTransfer = async (event) => {
     event.preventDefault();
     setSubmitting(true);
-    let _stakeValue = await convertPriceToEth("5", "XDC");
+    let _stakeValue = await convertPriceToEth("10", "XDUSD");
     console.log("stakevalue is", _stakeValue);
     let response1 = await executeTransaction(xdusd, provider, 'approve', [XSynExchange.address,_stakeValue], 0);
     log("approveTransfer", "hash", response1.txHash);
@@ -31,8 +31,8 @@ function XsynExchange() {
   const exchangeXDUSDwithSynths = async (event) => {
     event.preventDefault();
     setSubmitting(true);
-    let _amount = await convertPriceToEth("5", "XDC");
-    let _preferredSynthAddress="0xCD65DE13a67c722795A34aD772133df2c891B0C4";
+    let _amount = await convertPriceToEth("10", "XDUSD");
+    let _preferredSynthAddress="0x8890EB4068B3618479f43F11A697aAbE339B74b6";
     let  _woprefixSynth="PAX";
     let  _wprefixSynth="XDPAX";
     console.log("stakevalue is", _amount);
@@ -50,7 +50,7 @@ function XsynExchange() {
   const queryExchangeAddress = async (event) => {
     event.preventDefault();
     setSubmitting(true);
-    let _name = "XDPAX";
+    let _name = "EXCHANGERATE";
     let response1 = await queryData(XSynExchange, provider, 'supportedAddress', [_name]);
     log("queryExchangeAddress", "hash", response1)
     setSubmitting(false);
